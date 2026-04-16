@@ -10,6 +10,11 @@ import { AWS_FEATURES, getAwsActions, generateAwsPolicy, generateAwsTerraform, g
 import { AZURE_FEATURES, getAzureRoles, generateAzurePolicy, generateAzureTerraform, generateAzureGuide } from './data/azure.js';
 import { GCP_FEATURES, getGcpRoles, getGcpCustomPermissions, generateGcpPolicy, generateGcpTerraform, generateGcpGuide } from './data/gcp.js';
 
+/** AWS managed policy character limit */
+const AWS_POLICY_SIZE_LIMIT = 6144;
+/** Warning threshold as fraction of the limit (80% = 4915 chars) */
+const AWS_POLICY_SIZE_WARN_THRESHOLD = 0.8;
+
 /**
  * Escape HTML special characters to prevent XSS in rendered output.
  * @param {string} str
@@ -189,6 +194,53 @@ function buildAnnotatedGcpPolicy(selectedIds) {
 }
 
 /**
+ * Render or remove the AWS policy size warning banner.
+ *
+ * Checks the raw IAM policy JSON (from generateAwsPolicy) against the
+ * 6,144-character AWS managed policy limit. Shows a warning at 80% usage
+ * and an error banner when the limit is exceeded.
+ *
+ * @param {string} providerId - Active provider ID
+ * @param {string} policyText - Raw AWS IAM policy JSON string
+ */
+function renderPolicySizeWarning(providerId, policyText) {
+  const container = document.querySelector('.output__content');
+  if (!container) return;
+
+  const existing = container.querySelector('.output__size-warning');
+
+  // Only applies to AWS
+  if (providerId !== 'aws') {
+    if (existing) existing.remove();
+    return;
+  }
+
+  const length = policyText.length;
+  const threshold = AWS_POLICY_SIZE_LIMIT * AWS_POLICY_SIZE_WARN_THRESHOLD;
+
+  if (length < threshold) {
+    if (existing) existing.remove();
+    return;
+  }
+
+  const warning = existing || document.createElement('div');
+  warning.className = 'output__size-warning';
+
+  if (length >= AWS_POLICY_SIZE_LIMIT) {
+    warning.classList.add('output__size-warning--exceeded');
+    warning.innerHTML = `\u26A0 Policy size: ${length.toLocaleString()} / 6,144 characters \u2014 EXCEEDS AWS managed policy limit!`;
+  } else {
+    warning.classList.remove('output__size-warning--exceeded');
+    const percent = Math.round((length / AWS_POLICY_SIZE_LIMIT) * 100);
+    warning.innerHTML = `\u26A0 Policy size: ${length.toLocaleString()} / 6,144 characters (${percent}%). AWS managed policies cannot exceed 6,144 characters.`;
+  }
+
+  if (!existing) {
+    container.insertBefore(warning, container.firstChild);
+  }
+}
+
+/**
  * Render output content into all three tab panels.
  *
  * @param {string} providerId - Active provider ID ('aws', 'azure', 'gcp')
@@ -237,6 +289,10 @@ export function renderOutput(providerId, features) {
     guideContent = generateGcpGuide(selectedIds);
     policyLang = 'language-bash';
   }
+
+  // AWS policy size warning (uses raw JSON policy, not annotated version)
+  const rawPolicy = providerId === 'aws' ? generateAwsPolicy(selectedIds) : '';
+  renderPolicySizeWarning(providerId, rawPolicy);
 
   // Render policy tab
   policyPanel.innerHTML = `<pre><code class="${policyLang}">${escapeHtml(policyContent)}</code></pre>`;

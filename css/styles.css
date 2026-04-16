@@ -688,6 +688,24 @@ input {
   padding: var(--space-2xl) 0;
 }
 
+/* Policy size warning */
+.output__size-warning {
+  background: #78350f;
+  color: #fef3c7;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.output__size-warning--exceeded {
+  background: #7f1d1d;
+  color: #fecaca;
+}
+
 /* 9. Footer
    -------------------------------------------------------------------------- */
 
