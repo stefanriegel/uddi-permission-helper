@@ -5,39 +5,129 @@
  * definitions, Terraform HCL templates, setup guides, and per-role/permission
  * rationale strings. All data sourced from the Infoblox Universal DDI Admin Guide.
  *
- * Azure uses a role-based model: built-in roles (Reader, DNS Zone Contributor,
- * Private DNS Zone Contributor) and custom roles (for Cloud Forwarding features).
+ * Azure uses a role-based model: built-in roles (DNS Zone Contributor,
+ * Private DNS Zone Contributor) and custom roles (Discovery Reader for
+ * network/compute/DNS reads, and DNS Resolver roles for Cloud Forwarding).
+ *
+ * The Discovery Reader custom role replaces the overly broad built-in Reader
+ * role. Reader grants read access to ALL Azure resources; Discovery Reader
+ * limits reads to only the network, compute, and DNS resource types that
+ * UDDI actually needs.
  */
+
+/**
+ * Shared custom role for IPAM/Asset Discovery, Public DNS Read-Only, and
+ * Public DNS Read-Write features. Replaces the overly broad built-in Reader
+ * role with only the specific Microsoft.* read actions that UDDI needs.
+ */
+const discoveryReaderCustomRole = {
+  name: 'Infoblox UDDI - Discovery Reader',
+  permissions: [
+    // VNet and subnet discovery
+    'Microsoft.Network/virtualNetworks/read',
+    'Microsoft.Network/virtualNetworks/subnets/read',
+    // Public IP and NIC discovery
+    'Microsoft.Network/publicIPAddresses/read',
+    'Microsoft.Network/networkInterfaces/read',
+    // Network security groups
+    'Microsoft.Network/networkSecurityGroups/read',
+    // Route tables
+    'Microsoft.Network/routeTables/read',
+    // Load balancers
+    'Microsoft.Network/loadBalancers/read',
+    // VPN and ExpressRoute gateways
+    'Microsoft.Network/virtualNetworkGateways/read',
+    'Microsoft.Network/localNetworkGateways/read',
+    'Microsoft.Network/connections/read',
+    'Microsoft.Network/expressRouteCircuits/read',
+    // NAT gateways
+    'Microsoft.Network/natGateways/read',
+    // Private endpoints
+    'Microsoft.Network/privateEndpoints/read',
+    'Microsoft.Network/privateLinkServices/read',
+    // Peering
+    'Microsoft.Network/virtualNetworks/virtualNetworkPeerings/read',
+    // VM discovery
+    'Microsoft.Compute/virtualMachines/read',
+    'Microsoft.Compute/disks/read',
+    // DNS zone read (for public DNS read-only)
+    'Microsoft.Network/dnsZones/read',
+    'Microsoft.Network/dnsZones/all/read',
+    // Private DNS zone read
+    'Microsoft.Network/privateDnsZones/read',
+    'Microsoft.Network/privateDnsZones/all/read',
+    // Resource enumeration
+    'Microsoft.Resources/subscriptions/resourceGroups/read'
+  ],
+  scope: 'subscription'
+};
 
 const ipamAssetDiscovery = {
   id: 'ipamAssetDiscovery',
   name: 'IPAM / Asset Discovery',
   question: 'Discover VNets, subnets, VMs, IP addresses?',
-  roles: [
-    { name: 'Reader', builtIn: true, scope: 'subscription' }
-  ],
+  roles: [],
+  customRole: discoveryReaderCustomRole,
   rationale: {
-    'Reader': 'Read-only access to all Azure resources for network topology and IP address discovery'
+    'Microsoft.Network/virtualNetworks/read': 'Discover VNets and their address spaces',
+    'Microsoft.Compute/virtualMachines/read': 'Inventory VM instances and their network interfaces',
+    'Microsoft.Resources/subscriptions/resourceGroups/read': 'Enumerate resource groups for scoped discovery'
   },
   terraform: `data "azurerm_subscription" "current" {}
 
-data "azurerm_role_definition" "reader" {
-  name  = "Reader"
-  scope = data.azurerm_subscription.current.id
+resource "azurerm_role_definition" "infoblox_uddi_discovery_reader" {
+  name        = "Infoblox UDDI - Discovery Reader"
+  scope       = data.azurerm_subscription.current.id
+  description = "Infoblox Universal DDI - Read-only access to network, compute, and DNS resources for discovery"
+
+  permissions {
+    actions = [
+      "Microsoft.Network/virtualNetworks/read",
+      "Microsoft.Network/virtualNetworks/subnets/read",
+      "Microsoft.Network/publicIPAddresses/read",
+      "Microsoft.Network/networkInterfaces/read",
+      "Microsoft.Network/networkSecurityGroups/read",
+      "Microsoft.Network/routeTables/read",
+      "Microsoft.Network/loadBalancers/read",
+      "Microsoft.Network/virtualNetworkGateways/read",
+      "Microsoft.Network/localNetworkGateways/read",
+      "Microsoft.Network/connections/read",
+      "Microsoft.Network/expressRouteCircuits/read",
+      "Microsoft.Network/natGateways/read",
+      "Microsoft.Network/privateEndpoints/read",
+      "Microsoft.Network/privateLinkServices/read",
+      "Microsoft.Network/virtualNetworks/virtualNetworkPeerings/read",
+      "Microsoft.Compute/virtualMachines/read",
+      "Microsoft.Compute/disks/read",
+      "Microsoft.Network/dnsZones/read",
+      "Microsoft.Network/dnsZones/all/read",
+      "Microsoft.Network/privateDnsZones/read",
+      "Microsoft.Network/privateDnsZones/all/read",
+      "Microsoft.Resources/subscriptions/resourceGroups/read"
+    ]
+    not_actions = []
+  }
+
+  assignable_scopes = [
+    data.azurerm_subscription.current.id
+  ]
 }
 
-resource "azurerm_role_assignment" "infoblox_uddi_reader" {
+resource "azurerm_role_assignment" "infoblox_uddi_discovery_reader" {
   scope              = data.azurerm_subscription.current.id
-  role_definition_id = data.azurerm_role_definition.reader.role_definition_id
+  role_definition_id = azurerm_role_definition.infoblox_uddi_discovery_reader.role_definition_resource_id
   principal_id       = var.infoblox_service_principal_id
 }`,
   setupGuide: `1. In Azure Portal, navigate to Azure Active Directory > App registrations.
 2. Register a new application (or use an existing one) for Infoblox Universal DDI.
 3. Create a client secret under Certificates & secrets and note the value.
-4. Navigate to Subscriptions > select your subscription > Access control (IAM).
-5. Click "Add role assignment", select the "Reader" role.
-6. Assign it to the application (service principal) registered in step 2.
-7. In the Infoblox Portal, configure the Azure connection with the Tenant ID, Client ID, and Client Secret.`
+4. Navigate to Subscriptions > your subscription > Access control (IAM) > Roles.
+5. Click "Add custom role" and name it "Infoblox UDDI - Discovery Reader".
+6. Under Permissions, add the 22 read actions listed in the policy output (network, compute, DNS, and resource group reads).
+7. Set the assignable scope to the target subscription and create the role.
+8. Go back to Access control (IAM) > Add role assignment.
+9. Select the "Infoblox UDDI - Discovery Reader" custom role and assign it to the service principal.
+10. In the Infoblox Portal, configure the Azure connection with the Tenant ID, Client ID, and Client Secret.`
 };
 
 const publicDnsReadOnly = {
@@ -45,37 +135,64 @@ const publicDnsReadOnly = {
   name: 'Public DNS - Read-Only',
   question: 'Sync public DNS zones?',
   subQuestion: 'Read-only',
-  roles: [
-    {
-      name: 'Reader',
-      builtIn: true,
-      scope: 'subscription',
-      note: 'Covered by Reader role — no additional assignment needed if IPAM/Asset Discovery is also selected'
-    }
-  ],
+  roles: [],
+  customRole: discoveryReaderCustomRole,
   rationale: {
-    'Reader': 'Read-only access includes DNS zone enumeration and record listing'
+    'Microsoft.Network/dnsZones/read': 'Enumerate public DNS zones in the subscription',
+    'Microsoft.Network/dnsZones/all/read': 'Read all DNS record sets within each zone'
   },
-  terraform: `# Reader role covers public DNS read-only — no additional assignment needed
-# If IPAM/Asset Discovery is also selected, the Reader role is already assigned.
+  terraform: `# Discovery Reader custom role covers public DNS read-only.
+# If IPAM/Asset Discovery is also selected, the custom role is already created.
 
 data "azurerm_subscription" "current" {}
 
-data "azurerm_role_definition" "reader" {
-  name  = "Reader"
-  scope = data.azurerm_subscription.current.id
+resource "azurerm_role_definition" "infoblox_uddi_discovery_reader" {
+  name        = "Infoblox UDDI - Discovery Reader"
+  scope       = data.azurerm_subscription.current.id
+  description = "Infoblox Universal DDI - Read-only access to network, compute, and DNS resources for discovery"
+
+  permissions {
+    actions = [
+      "Microsoft.Network/virtualNetworks/read",
+      "Microsoft.Network/virtualNetworks/subnets/read",
+      "Microsoft.Network/publicIPAddresses/read",
+      "Microsoft.Network/networkInterfaces/read",
+      "Microsoft.Network/networkSecurityGroups/read",
+      "Microsoft.Network/routeTables/read",
+      "Microsoft.Network/loadBalancers/read",
+      "Microsoft.Network/virtualNetworkGateways/read",
+      "Microsoft.Network/localNetworkGateways/read",
+      "Microsoft.Network/connections/read",
+      "Microsoft.Network/expressRouteCircuits/read",
+      "Microsoft.Network/natGateways/read",
+      "Microsoft.Network/privateEndpoints/read",
+      "Microsoft.Network/privateLinkServices/read",
+      "Microsoft.Network/virtualNetworks/virtualNetworkPeerings/read",
+      "Microsoft.Compute/virtualMachines/read",
+      "Microsoft.Compute/disks/read",
+      "Microsoft.Network/dnsZones/read",
+      "Microsoft.Network/dnsZones/all/read",
+      "Microsoft.Network/privateDnsZones/read",
+      "Microsoft.Network/privateDnsZones/all/read",
+      "Microsoft.Resources/subscriptions/resourceGroups/read"
+    ]
+    not_actions = []
+  }
+
+  assignable_scopes = [
+    data.azurerm_subscription.current.id
+  ]
 }
 
-resource "azurerm_role_assignment" "infoblox_uddi_reader" {
+resource "azurerm_role_assignment" "infoblox_uddi_discovery_reader" {
   scope              = data.azurerm_subscription.current.id
-  role_definition_id = data.azurerm_role_definition.reader.role_definition_id
+  role_definition_id = azurerm_role_definition.infoblox_uddi_discovery_reader.role_definition_resource_id
   principal_id       = var.infoblox_service_principal_id
 }`,
-  setupGuide: `1. The Reader role covers public DNS read-only access (zone enumeration and record listing).
-2. If you have already assigned the Reader role for IPAM/Asset Discovery, no additional step is needed.
-3. Otherwise, navigate to Subscriptions > your subscription > Access control (IAM).
-4. Click "Add role assignment", select the "Reader" role.
-5. Assign it to the Infoblox Universal DDI service principal.`
+  setupGuide: `1. The "Infoblox UDDI - Discovery Reader" custom role covers public DNS read-only access (zone enumeration and record listing).
+2. If you have already created this custom role for IPAM/Asset Discovery, no additional step is needed.
+3. Otherwise, create the custom role with the 22 read actions listed in the policy output.
+4. Assign the "Infoblox UDDI - Discovery Reader" custom role to the Infoblox Universal DDI service principal.`
 };
 
 const publicDnsReadWrite = {
@@ -84,18 +201,58 @@ const publicDnsReadWrite = {
   question: 'Sync public DNS zones?',
   subQuestion: 'Read-write (bidirectional)',
   roles: [
-    { name: 'Reader', builtIn: true, scope: 'subscription' },
     { name: 'DNS Zone Contributor', builtIn: true, scope: 'subscription' }
   ],
+  customRole: discoveryReaderCustomRole,
   rationale: {
-    'Reader': 'Read-only access to discover existing DNS zones and records',
+    'Microsoft.Network/dnsZones/read': 'Discover existing public DNS zones',
+    'Microsoft.Network/dnsZones/all/read': 'Read all DNS record sets for sync',
     'DNS Zone Contributor': 'Create, update, and delete DNS zones and records for bidirectional sync'
   },
   terraform: `data "azurerm_subscription" "current" {}
 
-data "azurerm_role_definition" "reader" {
-  name  = "Reader"
-  scope = data.azurerm_subscription.current.id
+resource "azurerm_role_definition" "infoblox_uddi_discovery_reader" {
+  name        = "Infoblox UDDI - Discovery Reader"
+  scope       = data.azurerm_subscription.current.id
+  description = "Infoblox Universal DDI - Read-only access to network, compute, and DNS resources for discovery"
+
+  permissions {
+    actions = [
+      "Microsoft.Network/virtualNetworks/read",
+      "Microsoft.Network/virtualNetworks/subnets/read",
+      "Microsoft.Network/publicIPAddresses/read",
+      "Microsoft.Network/networkInterfaces/read",
+      "Microsoft.Network/networkSecurityGroups/read",
+      "Microsoft.Network/routeTables/read",
+      "Microsoft.Network/loadBalancers/read",
+      "Microsoft.Network/virtualNetworkGateways/read",
+      "Microsoft.Network/localNetworkGateways/read",
+      "Microsoft.Network/connections/read",
+      "Microsoft.Network/expressRouteCircuits/read",
+      "Microsoft.Network/natGateways/read",
+      "Microsoft.Network/privateEndpoints/read",
+      "Microsoft.Network/privateLinkServices/read",
+      "Microsoft.Network/virtualNetworks/virtualNetworkPeerings/read",
+      "Microsoft.Compute/virtualMachines/read",
+      "Microsoft.Compute/disks/read",
+      "Microsoft.Network/dnsZones/read",
+      "Microsoft.Network/dnsZones/all/read",
+      "Microsoft.Network/privateDnsZones/read",
+      "Microsoft.Network/privateDnsZones/all/read",
+      "Microsoft.Resources/subscriptions/resourceGroups/read"
+    ]
+    not_actions = []
+  }
+
+  assignable_scopes = [
+    data.azurerm_subscription.current.id
+  ]
+}
+
+resource "azurerm_role_assignment" "infoblox_uddi_discovery_reader" {
+  scope              = data.azurerm_subscription.current.id
+  role_definition_id = azurerm_role_definition.infoblox_uddi_discovery_reader.role_definition_resource_id
+  principal_id       = var.infoblox_service_principal_id
 }
 
 data "azurerm_role_definition" "dns_zone_contributor" {
@@ -103,23 +260,17 @@ data "azurerm_role_definition" "dns_zone_contributor" {
   scope = data.azurerm_subscription.current.id
 }
 
-resource "azurerm_role_assignment" "infoblox_uddi_reader" {
-  scope              = data.azurerm_subscription.current.id
-  role_definition_id = data.azurerm_role_definition.reader.role_definition_id
-  principal_id       = var.infoblox_service_principal_id
-}
-
 resource "azurerm_role_assignment" "infoblox_uddi_dns_zone_contributor" {
   scope              = data.azurerm_subscription.current.id
   role_definition_id = data.azurerm_role_definition.dns_zone_contributor.role_definition_id
   principal_id       = var.infoblox_service_principal_id
 }`,
-  setupGuide: `1. Navigate to Subscriptions > your subscription > Access control (IAM).
-2. Click "Add role assignment" and select the "Reader" role.
-3. Assign it to the Infoblox Universal DDI service principal.
-4. Click "Add role assignment" again and select the "DNS Zone Contributor" role.
+  setupGuide: `1. Navigate to Subscriptions > your subscription > Access control (IAM) > Roles.
+2. Create the "Infoblox UDDI - Discovery Reader" custom role with the 22 read actions listed in the policy output (if not already created for IPAM/Asset Discovery).
+3. Assign the "Infoblox UDDI - Discovery Reader" custom role to the service principal.
+4. Click "Add role assignment" and select the "DNS Zone Contributor" built-in role.
 5. Assign it to the same service principal.
-6. The Reader role provides discovery of existing zones; DNS Zone Contributor enables creating, updating, and deleting DNS zones and records.`
+6. The custom role provides discovery of existing zones; DNS Zone Contributor enables creating, updating, and deleting DNS zones and records.`
 };
 
 const privateDns = {
@@ -478,6 +629,29 @@ export function getAzureRoles(selectedFeatureIds) {
 }
 
 /**
+ * Collect and deduplicate custom roles from selected Azure feature IDs.
+ *
+ * Multiple features may share the same custom role object (e.g. Discovery Reader
+ * is shared by IPAM, Public DNS Read-Only, and Public DNS Read-Write). This
+ * function deduplicates by custom role name.
+ *
+ * @param {string[]} selectedFeatureIds - Array of feature ID keys from AZURE_FEATURES
+ * @returns {Array<{name: string, permissions: string[], scope: string}>} Deduplicated custom roles
+ */
+export function getAzureCustomRoles(selectedFeatureIds) {
+  const seen = new Map();
+  for (const id of selectedFeatureIds) {
+    const feature = AZURE_FEATURES[id];
+    if (feature && feature.customRole) {
+      if (!seen.has(feature.customRole.name)) {
+        seen.set(feature.customRole.name, feature.customRole);
+      }
+    }
+  }
+  return [...seen.values()];
+}
+
+/**
  * Generate Azure CLI commands for role assignments and custom role definitions.
  *
  * Produces `az role assignment create` commands for deduplicated built-in roles,
@@ -499,10 +673,12 @@ export function generateAzurePolicy(selectedFeatureIds) {
   --scope "/subscriptions/<SUBSCRIPTION_ID>"`);
   }
 
-  // Custom roles for cloud forwarding features
+  // Custom roles (Discovery Reader, Cloud Forwarding, etc.) — deduplicated
+  const seenCustomRoles = new Set();
   for (const id of selectedFeatureIds) {
     const feature = AZURE_FEATURES[id];
-    if (feature && feature.customRole) {
+    if (feature && feature.customRole && !seenCustomRoles.has(feature.customRole.name)) {
+      seenCustomRoles.add(feature.customRole.name);
       const cr = feature.customRole;
       const actionsJson = cr.permissions.map(p => `    "${p}"`).join(',\n');
       parts.push(`# Custom Role: ${cr.name}
@@ -573,10 +749,12 @@ resource "azurerm_role_assignment" "infoblox_uddi_${resourceName}" {
 }`);
   }
 
-  // Custom role definitions for cloud forwarding
+  // Custom role definitions (Discovery Reader, Cloud Forwarding, etc.) — deduplicated
+  const seenCustomRoles = new Set();
   for (const id of selectedFeatureIds) {
     const feature = AZURE_FEATURES[id];
-    if (feature && feature.customRole) {
+    if (feature && feature.customRole && !seenCustomRoles.has(feature.customRole.name)) {
+      seenCustomRoles.add(feature.customRole.name);
       const cr = feature.customRole;
       const resourceName = cr.name.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
       const actionsHcl = cr.permissions.map(p => `      "${p}"`).join(',\n');
@@ -660,10 +838,12 @@ export function generateAzureGuide(selectedFeatureIds) {
     }
   }
 
-  // Custom role creation
+  // Custom role creation — deduplicated
+  const seenCustomRoles = new Set();
   for (const id of selectedFeatureIds) {
     const feature = AZURE_FEATURES[id];
-    if (feature && feature.customRole) {
+    if (feature && feature.customRole && !seenCustomRoles.has(feature.customRole.name)) {
+      seenCustomRoles.add(feature.customRole.name);
       const cr = feature.customRole;
       steps.push(`${stepNum}. Create a custom role named "${cr.name}" with ${cr.permissions.length} permissions (see policy output for the full list).`);
       stepNum++;
