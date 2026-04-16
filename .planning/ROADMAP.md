@@ -60,9 +60,10 @@ Plans:
   3. Cloud Forwarding discovery-only generates 6 actions (read-only); full management generates 12 actions
   4. Multi-account generates a trust policy template, Organizations policy, and STS policy
   5. Selecting VPC/IPAM and DNS bidirectional together produces no duplicate ec2 actions
-**Plans**: 1 plan
+**Plans**: 2 plans
 Plans:
-- [ ] 01-01-PLAN.md — Infoblox-branded HTML/CSS shell with design tokens, semantic HTML, and responsive layout
+- [ ] 03-01-PLAN.md — AWS feature data module with all 6 categories (21+8+3+7+14+6+12 actions, multi-account policies, Terraform HCL, setup guides)
+- [ ] 03-02-PLAN.md — Deduplication logic and output generator functions (getAwsActions, generateAwsPolicy, generateAwsTerraform, generateAwsGuide)
 
 ### Phase 4: Azure Permission Data
 **Goal**: All five Azure feature categories produce correct built-in role assignments, custom role JSON, Terraform HCL, and setup guide text
@@ -141,9 +142,9 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. HTML Shell + Branding | 0/? | Not started | - |
-| 2. Provider Selection UI | 0/? | Not started | - |
-| 3. AWS Permission Data | 0/? | Not started | - |
+| 1. HTML Shell + Branding | 1/1 | Complete | 2026-04-16 |
+| 2. Provider Selection UI | 1/1 | Complete | 2026-04-16 |
+| 3. AWS Permission Data | 0/2 | Not started | - |
 | 4. Azure Permission Data | 0/? | Not started | - |
 | 5. GCP Permission Data | 0/? | Not started | - |
 | 6. Feature Selection Wizard | 0/? | Not started | - |
