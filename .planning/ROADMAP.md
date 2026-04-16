@@ -123,7 +123,7 @@ Plans:
 **Plans**: 2 plans
 Plans:
 - [x] 07-01-PLAN.md — Output rendering engine with provider dispatch, rationale injection, Prism.js highlighting, and live permission badge
-- [ ] 07-02-PLAN.md — Copy to clipboard with confirmation UX, file download with provider-aware naming, and end-to-end verification
+- [x] 07-02-PLAN.md — Copy to clipboard with confirmation UX, file download with provider-aware naming, and end-to-end verification
 **UI hint**: yes
 
 ### Phase 8: Hardening + Deploy
