@@ -77,7 +77,7 @@ Plans:
 **Plans**: 2 plans
 Plans:
 - [x] 04-01-PLAN.md — Azure feature data module with all 5 categories (Reader, DNS Zone Contributor, Private DNS Zone Contributor roles + custom roles with 6/21 permissions)
-- [ ] 04-02-PLAN.md — Role deduplication and output generator functions (getAzureRoles, generateAzurePolicy, generateAzureTerraform, generateAzureGuide) with TDD
+- [x] 04-02-PLAN.md — Role deduplication and output generator functions (getAzureRoles, generateAzurePolicy, generateAzureTerraform, generateAzureGuide) with TDD
 
 ### Phase 5: GCP Permission Data
 **Goal**: All six GCP feature categories produce correct predefined role bindings, custom role definitions, Terraform HCL, and setup guide text
