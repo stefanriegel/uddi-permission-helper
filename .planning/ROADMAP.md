@@ -105,7 +105,7 @@ Plans:
   4. Switching back to Wizard mode reflects the same feature selections that were set in Advanced mode
 **Plans**: 2 plans
 Plans:
-- [ ] 06-01-PLAN.md — Question engine, state extensions, and wizard mode UI with sequential question cards and sub-question reveal
+- [x] 06-01-PLAN.md — Question engine, state extensions, and wizard mode UI with sequential question cards and sub-question reveal
 - [ ] 06-02-PLAN.md — Advanced mode checkbox UI with permission counts, mode toggle wiring, and crossfade animation
 **UI hint**: yes
 

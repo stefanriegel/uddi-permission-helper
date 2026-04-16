@@ -15,9 +15,9 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Feature Selection
 
-- [ ] **FEAT-01**: User can answer wizard-style yes/no questions to scope needed features
-- [ ] **FEAT-02**: Wizard questions are sequential — one active at a time, upcoming questions previewed
-- [ ] **FEAT-03**: Sub-questions appear conditionally (e.g., DNS → read-only or bidirectional)
+- [x] **FEAT-01**: User can answer wizard-style yes/no questions to scope needed features
+- [x] **FEAT-02**: Wizard questions are sequential — one active at a time, upcoming questions previewed
+- [x] **FEAT-03**: Sub-questions appear conditionally (e.g., DNS → read-only or bidirectional)
 - [ ] **FEAT-04**: User can switch to advanced mode showing direct feature checkboxes
 - [ ] **FEAT-05**: Advanced mode shows permission count per feature category
 - [ ] **FEAT-06**: State is preserved when switching between wizard and advanced mode
@@ -142,9 +142,9 @@ Deferred to future release. Tracked but not in current roadmap.
 | GCP-07 | Phase 5 | Complete |
 | GCP-08 | Phase 5 | Complete |
 | GCP-09 | Phase 5 | Complete |
-| FEAT-01 | Phase 6 | Pending |
-| FEAT-02 | Phase 6 | Pending |
-| FEAT-03 | Phase 6 | Pending |
+| FEAT-01 | Phase 6 | Complete |
+| FEAT-02 | Phase 6 | Complete |
+| FEAT-03 | Phase 6 | Complete |
 | FEAT-04 | Phase 6 | Pending |
 | FEAT-05 | Phase 6 | Pending |
 | FEAT-06 | Phase 6 | Pending |
