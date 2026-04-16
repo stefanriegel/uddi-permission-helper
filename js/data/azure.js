@@ -450,3 +450,238 @@ export const AZURE_FEATURES = {
   cloudForwardingFull,
   multiSubscription
 };
+
+/**
+ * Merge and deduplicate built-in roles from selected Azure feature IDs.
+ *
+ * Collects all roles[] entries from selected features, deduplicates by role
+ * name, and returns an array of unique { name, builtIn, scope } objects.
+ * Features with empty roles (cloud forwarding, multi-subscription) contribute
+ * nothing to the result.
+ *
+ * @param {string[]} selectedFeatureIds - Array of feature ID keys from AZURE_FEATURES
+ * @returns {Array<{name: string, builtIn: boolean, scope: string}>} Deduplicated roles
+ */
+export function getAzureRoles(selectedFeatureIds) {
+  const seen = new Map();
+  for (const id of selectedFeatureIds) {
+    const feature = AZURE_FEATURES[id];
+    if (feature && Array.isArray(feature.roles)) {
+      for (const role of feature.roles) {
+        if (!seen.has(role.name)) {
+          seen.set(role.name, { name: role.name, builtIn: role.builtIn, scope: role.scope });
+        }
+      }
+    }
+  }
+  return [...seen.values()];
+}
+
+/**
+ * Generate Azure CLI commands for role assignments and custom role definitions.
+ *
+ * Produces `az role assignment create` commands for deduplicated built-in roles,
+ * custom role JSON + `az role definition create` for cloud forwarding features,
+ * and management group guidance for multi-subscription.
+ *
+ * @param {string[]} selectedFeatureIds - Array of feature ID keys from AZURE_FEATURES
+ * @returns {string} Azure CLI commands string
+ */
+export function generateAzurePolicy(selectedFeatureIds) {
+  const roles = getAzureRoles(selectedFeatureIds);
+  const parts = [];
+
+  // Built-in role assignments
+  for (const role of roles) {
+    parts.push(`az role assignment create \\
+  --assignee "<SERVICE_PRINCIPAL_ID>" \\
+  --role "${role.name}" \\
+  --scope "/subscriptions/<SUBSCRIPTION_ID>"`);
+  }
+
+  // Custom roles for cloud forwarding features
+  for (const id of selectedFeatureIds) {
+    const feature = AZURE_FEATURES[id];
+    if (feature && feature.customRole) {
+      const cr = feature.customRole;
+      const actionsJson = cr.permissions.map(p => `    "${p}"`).join(',\n');
+      parts.push(`# Custom Role: ${cr.name}
+az role definition create --role-definition '{
+  "Name": "${cr.name}",
+  "Description": "Infoblox Universal DDI custom role",
+  "Actions": [
+${actionsJson}
+  ],
+  "AssignableScopes": ["/subscriptions/<SUBSCRIPTION_ID>"]
+}'
+
+az role assignment create \\
+  --assignee "<SERVICE_PRINCIPAL_ID>" \\
+  --role "${cr.name}" \\
+  --scope "/subscriptions/<SUBSCRIPTION_ID>"`);
+    }
+  }
+
+  // Multi-subscription guidance
+  if (selectedFeatureIds.includes('multiSubscription')) {
+    parts.push(`# Multi-Subscription: Assign roles at management group scope instead of subscription scope.
+# Replace --scope with /providers/Microsoft.Management/managementGroups/<MANAGEMENT_GROUP_ID>
+# This grants access to all subscriptions within the management group.`);
+  }
+
+  return parts.join('\n\n');
+}
+
+/**
+ * Generate Terraform HCL for Azure role assignments and custom role definitions.
+ *
+ * Produces azurerm_role_assignment blocks for deduplicated built-in roles,
+ * azurerm_role_definition + azurerm_role_assignment for custom roles,
+ * and management group scoped resources for multi-subscription.
+ *
+ * @param {string[]} selectedFeatureIds - Array of feature ID keys from AZURE_FEATURES
+ * @returns {string} Terraform HCL string
+ */
+export function generateAzureTerraform(selectedFeatureIds) {
+  const roles = getAzureRoles(selectedFeatureIds);
+  const hasCustomRoles = selectedFeatureIds.some(id => AZURE_FEATURES[id]?.customRole);
+  const hasMultiSub = selectedFeatureIds.includes('multiSubscription');
+
+  if (roles.length === 0 && !hasCustomRoles && !hasMultiSub) {
+    return '';
+  }
+
+  const parts = [];
+
+  // Data sources
+  parts.push(`data "azurerm_subscription" "current" {}
+
+data "azurerm_client_config" "current" {}`);
+
+  // Built-in role assignments
+  for (const role of roles) {
+    const resourceName = role.name.toLowerCase().replace(/\s+/g, '_');
+    parts.push(`data "azurerm_role_definition" "${resourceName}" {
+  name  = "${role.name}"
+  scope = data.azurerm_subscription.current.id
+}
+
+resource "azurerm_role_assignment" "infoblox_uddi_${resourceName}" {
+  scope              = data.azurerm_subscription.current.id
+  role_definition_id = data.azurerm_role_definition.${resourceName}.role_definition_id
+  principal_id       = data.azurerm_client_config.current.object_id
+}`);
+  }
+
+  // Custom role definitions for cloud forwarding
+  for (const id of selectedFeatureIds) {
+    const feature = AZURE_FEATURES[id];
+    if (feature && feature.customRole) {
+      const cr = feature.customRole;
+      const resourceName = cr.name.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
+      const actionsHcl = cr.permissions.map(p => `      "${p}"`).join(',\n');
+      parts.push(`resource "azurerm_role_definition" "${resourceName}" {
+  name        = "${cr.name}"
+  scope       = data.azurerm_subscription.current.id
+  description = "Infoblox Universal DDI custom role"
+
+  permissions {
+    actions = [
+${actionsHcl}
+    ]
+    not_actions = []
+  }
+
+  assignable_scopes = [
+    data.azurerm_subscription.current.id
+  ]
+}
+
+resource "azurerm_role_assignment" "${resourceName}" {
+  scope              = data.azurerm_subscription.current.id
+  role_definition_id = azurerm_role_definition.${resourceName}.role_definition_resource_id
+  principal_id       = data.azurerm_client_config.current.object_id
+}`);
+    }
+  }
+
+  // Multi-subscription: management group
+  if (hasMultiSub) {
+    parts.push(`# Multi-Subscription: Assign roles at management group scope
+data "azurerm_management_group" "target" {
+  name = var.management_group_name
+}
+
+# Assign roles at management group scope instead of subscription scope.
+# Repeat for each required role, replacing scope with:
+#   data.azurerm_management_group.target.id`);
+  }
+
+  return parts.join('\n\n');
+}
+
+/**
+ * Generate a step-by-step setup guide for selected Azure features.
+ *
+ * Produces numbered plain text instructions starting with service principal
+ * creation, followed by role assignments, and ending with Infoblox Portal
+ * configuration.
+ *
+ * @param {string[]} selectedFeatureIds - Array of feature ID keys from AZURE_FEATURES
+ * @returns {string} Plain text guide with numbered steps
+ */
+export function generateAzureGuide(selectedFeatureIds) {
+  const roles = getAzureRoles(selectedFeatureIds);
+  const hasCustomRoles = selectedFeatureIds.some(id => AZURE_FEATURES[id]?.customRole);
+  const hasMultiSub = selectedFeatureIds.includes('multiSubscription');
+
+  if (roles.length === 0 && !hasCustomRoles && !hasMultiSub) {
+    return '';
+  }
+
+  const steps = [];
+  let stepNum = 1;
+
+  // Step 1: Service principal
+  steps.push(`${stepNum}. In Azure Portal, navigate to Azure Active Directory > App registrations and register a new application (or use an existing service principal) for Infoblox Universal DDI.`);
+  stepNum++;
+
+  steps.push(`${stepNum}. Create a client secret under Certificates & secrets and note the Tenant ID, Client ID, and Client Secret.`);
+  stepNum++;
+
+  // Built-in role assignments
+  if (roles.length > 0) {
+    steps.push(`${stepNum}. Navigate to Subscriptions > your subscription > Access control (IAM).`);
+    stepNum++;
+
+    for (const role of roles) {
+      steps.push(`${stepNum}. Click "Add role assignment" and assign the "${role.name}" role to the service principal.`);
+      stepNum++;
+    }
+  }
+
+  // Custom role creation
+  for (const id of selectedFeatureIds) {
+    const feature = AZURE_FEATURES[id];
+    if (feature && feature.customRole) {
+      const cr = feature.customRole;
+      steps.push(`${stepNum}. Create a custom role named "${cr.name}" with ${cr.permissions.length} permissions (see policy output for the full list).`);
+      stepNum++;
+      steps.push(`${stepNum}. Assign the custom role "${cr.name}" to the service principal.`);
+      stepNum++;
+    }
+  }
+
+  // Multi-subscription guidance
+  if (hasMultiSub) {
+    steps.push(`${stepNum}. For multi-subscription access, assign roles at the management group scope instead of individual subscriptions.`);
+    stepNum++;
+    steps.push(`${stepNum}. Navigate to Management groups > select the target group > Access control (IAM) and add the required role assignments.`);
+    stepNum++;
+  }
+
+  // Final step: Infoblox Portal
+  steps.push(`${stepNum}. Configure the Azure connection credentials (Tenant ID, Client ID, Client Secret) in the Infoblox Portal.`);
+
+  return steps.join('\n');
+}
