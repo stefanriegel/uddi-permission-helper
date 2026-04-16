@@ -18,9 +18,9 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **FEAT-01**: User can answer wizard-style yes/no questions to scope needed features
 - [x] **FEAT-02**: Wizard questions are sequential — one active at a time, upcoming questions previewed
 - [x] **FEAT-03**: Sub-questions appear conditionally (e.g., DNS → read-only or bidirectional)
-- [ ] **FEAT-04**: User can switch to advanced mode showing direct feature checkboxes
-- [ ] **FEAT-05**: Advanced mode shows permission count per feature category
-- [ ] **FEAT-06**: State is preserved when switching between wizard and advanced mode
+- [x] **FEAT-04**: User can switch to advanced mode showing direct feature checkboxes
+- [x] **FEAT-05**: Advanced mode shows permission count per feature category
+- [x] **FEAT-06**: State is preserved when switching between wizard and advanced mode
 
 ### AWS Permissions
 
@@ -145,9 +145,9 @@ Deferred to future release. Tracked but not in current roadmap.
 | FEAT-01 | Phase 6 | Complete |
 | FEAT-02 | Phase 6 | Complete |
 | FEAT-03 | Phase 6 | Complete |
-| FEAT-04 | Phase 6 | Pending |
-| FEAT-05 | Phase 6 | Pending |
-| FEAT-06 | Phase 6 | Pending |
+| FEAT-04 | Phase 6 | Complete |
+| FEAT-05 | Phase 6 | Complete |
+| FEAT-06 | Phase 6 | Complete |
 | OUT-01 | Phase 7 | Pending |
 | OUT-02 | Phase 7 | Pending |
 | OUT-03 | Phase 7 | Pending |

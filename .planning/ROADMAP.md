@@ -106,7 +106,7 @@ Plans:
 **Plans**: 2 plans
 Plans:
 - [x] 06-01-PLAN.md — Question engine, state extensions, and wizard mode UI with sequential question cards and sub-question reveal
-- [ ] 06-02-PLAN.md — Advanced mode checkbox UI with permission counts, mode toggle wiring, and crossfade animation
+- [x] 06-02-PLAN.md — Advanced mode checkbox UI with permission counts, mode toggle wiring, and crossfade animation
 **UI hint**: yes
 
 ### Phase 7: Output Engine + Utilities
