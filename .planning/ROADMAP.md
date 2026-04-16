@@ -32,7 +32,9 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. Provider cards display AWS orange, Azure blue, and GCP blue brand colors
   3. Output panel uses dark theme with correct chrome (tabs, action buttons, badge placeholder)
   4. Layout stacks vertically on a viewport narrower than 900px
-**Plans**: TBD
+**Plans**: 1 plan
+Plans:
+- [ ] 01-01-PLAN.md — Infoblox-branded HTML/CSS shell with design tokens, semantic HTML, and responsive layout
 **UI hint**: yes
 
 ### Phase 2: Provider Selection UI
@@ -43,7 +45,9 @@ Decimal phases appear between their surrounding integers in numeric order.
   1. Clicking a provider card highlights it and reveals the workspace panel
   2. Selecting AWS loads the AWS feature set; selecting Azure loads the Azure feature set; selecting GCP loads the GCP feature set
   3. Switching from AWS to Azure does not clear answers previously entered for AWS
-**Plans**: TBD
+**Plans**: 1 plan
+Plans:
+- [ ] 01-01-PLAN.md — Infoblox-branded HTML/CSS shell with design tokens, semantic HTML, and responsive layout
 **UI hint**: yes
 
 ### Phase 3: AWS Permission Data
@@ -56,7 +60,9 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. Cloud Forwarding discovery-only generates 6 actions (read-only); full management generates 12 actions
   4. Multi-account generates a trust policy template, Organizations policy, and STS policy
   5. Selecting VPC/IPAM and DNS bidirectional together produces no duplicate ec2 actions
-**Plans**: TBD
+**Plans**: 1 plan
+Plans:
+- [ ] 01-01-PLAN.md — Infoblox-branded HTML/CSS shell with design tokens, semantic HTML, and responsive layout
 
 ### Phase 4: Azure Permission Data
 **Goal**: All five Azure feature categories produce correct built-in role assignments, custom role JSON, Terraform HCL, and setup guide text
@@ -67,7 +73,9 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. Public DNS read-write outputs a DNS Zone Contributor assignment; Private DNS outputs a Private DNS Zone Contributor assignment
   3. Cloud Forwarding discovery outputs a custom role with 6 read-only permissions; full management outputs a custom role with 21 permissions
   4. Multi-subscription outputs management group scope guidance
-**Plans**: TBD
+**Plans**: 1 plan
+Plans:
+- [ ] 01-01-PLAN.md — Infoblox-branded HTML/CSS shell with design tokens, semantic HTML, and responsive layout
 
 ### Phase 5: GCP Permission Data
 **Goal**: All six GCP feature categories produce correct predefined role bindings, custom role definitions, Terraform HCL, and setup guide text
@@ -79,7 +87,9 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. Cloud Forwarding inbound outputs 10 custom permissions; outbound outputs 15; both outputs 21 combined
   4. Internal Ranges outputs 13 networkconnectivity permissions
   5. Multi-project/org outputs organizationViewer + folderViewer roles plus 5 resourcemanager permissions
-**Plans**: TBD
+**Plans**: 1 plan
+Plans:
+- [ ] 01-01-PLAN.md — Infoblox-branded HTML/CSS shell with design tokens, semantic HTML, and responsive layout
 
 ### Phase 6: Feature Selection Wizard
 **Goal**: Customer can answer sequential yes/no questions to scope features, or switch to direct checkboxes — state is preserved when switching modes
@@ -90,7 +100,9 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. A DNS sub-question (read-only vs. bidirectional) appears only after the parent DNS question is answered Yes
   3. Switching to Advanced mode shows feature checkboxes with per-category permission counts
   4. Switching back to Wizard mode reflects the same feature selections that were set in Advanced mode
-**Plans**: TBD
+**Plans**: 1 plan
+Plans:
+- [ ] 01-01-PLAN.md — Infoblox-branded HTML/CSS shell with design tokens, semantic HTML, and responsive layout
 **UI hint**: yes
 
 ### Phase 7: Output Engine + Utilities
@@ -104,7 +116,9 @@ Decimal phases appear between their surrounding integers in numeric order.
   4. Download button saves the current output as an appropriately named file (.json, .tf, or .sh/.txt)
   5. Permission count badge updates live and reflects deduplication
   6. Each permission in Policy output includes an inline rationale comment
-**Plans**: TBD
+**Plans**: 1 plan
+Plans:
+- [ ] 01-01-PLAN.md — Infoblox-branded HTML/CSS shell with design tokens, semantic HTML, and responsive layout
 **UI hint**: yes
 
 ### Phase 8: Hardening + Deploy
@@ -116,7 +130,9 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. Copy-to-clipboard and file download work correctly in Chrome, Firefox, Safari, and iOS Safari
   3. A visible warning appears when the generated AWS policy approaches the 6,144-character managed policy limit
   4. Site is accessible at a public GitHub Pages URL
-**Plans**: TBD
+**Plans**: 1 plan
+Plans:
+- [ ] 01-01-PLAN.md — Infoblox-branded HTML/CSS shell with design tokens, semantic HTML, and responsive layout
 
 ## Progress
 
