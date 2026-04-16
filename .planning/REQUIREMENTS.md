@@ -9,9 +9,9 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Provider Selection
 
-- [ ] **PROV-01**: User can select AWS, Azure, or GCP as their cloud provider
-- [ ] **PROV-02**: Selecting a provider loads that provider's feature wizard and output templates
-- [ ] **PROV-03**: User can switch between providers without losing state of other providers
+- [x] **PROV-01**: User can select AWS, Azure, or GCP as their cloud provider
+- [x] **PROV-02**: Selecting a provider loads that provider's feature wizard and output templates
+- [x] **PROV-03**: User can switch between providers without losing state of other providers
 
 ### Feature Selection
 
@@ -114,9 +114,9 @@ Deferred to future release. Tracked but not in current roadmap.
 | DSN-02 | Phase 1 | Complete |
 | DSN-03 | Phase 1 | Complete |
 | DSN-04 | Phase 1 | Complete |
-| PROV-01 | Phase 2 | Pending |
-| PROV-02 | Phase 2 | Pending |
-| PROV-03 | Phase 2 | Pending |
+| PROV-01 | Phase 2 | Complete |
+| PROV-02 | Phase 2 | Complete |
+| PROV-03 | Phase 2 | Complete |
 | AWS-01 | Phase 3 | Pending |
 | AWS-02 | Phase 3 | Pending |
 | AWS-03 | Phase 3 | Pending |
