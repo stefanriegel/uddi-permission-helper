@@ -120,9 +120,10 @@ Plans:
   4. Download button saves the current output as an appropriately named file (.json, .tf, or .sh/.txt)
   5. Permission count badge updates live and reflects deduplication
   6. Each permission in Policy output includes an inline rationale comment
-**Plans**: 1 plan
+**Plans**: 2 plans
 Plans:
-- [ ] 01-01-PLAN.md — Infoblox-branded HTML/CSS shell with design tokens, semantic HTML, and responsive layout
+- [ ] 07-01-PLAN.md — Output rendering engine with provider dispatch, rationale injection, Prism.js highlighting, and live permission badge
+- [ ] 07-02-PLAN.md — Copy to clipboard with confirmation UX, file download with provider-aware naming, and end-to-end verification
 **UI hint**: yes
 
 ### Phase 8: Hardening + Deploy
@@ -141,7 +142,7 @@ Plans:
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
+Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -151,5 +152,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 | 4. Azure Permission Data | 0/2 | Not started | - |
 | 5. GCP Permission Data | 0/2 | Not started | - |
 | 6. Feature Selection Wizard | 0/2 | Not started | - |
-| 7. Output Engine + Utilities | 0/? | Not started | - |
+| 7. Output Engine + Utilities | 0/2 | Not started | - |
 | 8. Hardening + Deploy | 0/? | Not started | - |
