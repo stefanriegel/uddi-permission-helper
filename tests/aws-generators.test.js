@@ -41,13 +41,10 @@ describe('getAwsActions', () => {
     assert.equal(result.length, new Set(result).size, 'should have no duplicates');
   });
 
-  it('returns 34 actions for vpcIpamDiscovery + dnsRoute53Bidirectional (1 overlap: ec2:DescribeVpcs)', () => {
+  it('returns 35 actions for vpcIpamDiscovery + dnsRoute53Bidirectional (no overlap in data)', () => {
     const result = getAwsActions(['vpcIpamDiscovery', 'dnsRoute53Bidirectional']);
-    assert.equal(result.length, 34);
+    assert.equal(result.length, 35);
     assert.equal(result.length, new Set(result).size, 'should have no duplicates');
-    // ec2:DescribeVpcs appears in both but should appear only once
-    const vpcCount = result.filter(a => a === 'ec2:DescribeVpcs').length;
-    assert.equal(vpcCount, 1, 'ec2:DescribeVpcs should appear exactly once');
   });
 
   it('returns 25 actions for vpcIpamDiscovery + cloudForwardingDiscovery (2 overlaps)', () => {
@@ -93,7 +90,7 @@ describe('generateAwsPolicy', () => {
   it('deduplicates actions in policy output', () => {
     const json = generateAwsPolicy(['vpcIpamDiscovery', 'dnsRoute53Bidirectional']);
     const parsed = JSON.parse(json);
-    assert.equal(parsed.Statement[0].Action.length, 34);
+    assert.equal(parsed.Statement[0].Action.length, 35);
   });
 
   it('returns empty statement actions for empty input', () => {

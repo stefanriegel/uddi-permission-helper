@@ -556,3 +556,186 @@ export const AWS_FEATURES = {
   cloudForwardingFull,
   multiAccount
 };
+
+/**
+ * Merge and deduplicate IAM actions from selected feature IDs.
+ *
+ * Skips features that lack an `actions` array (e.g., multiAccount).
+ * Returns a sorted, unique array of IAM action strings.
+ *
+ * @param {string[]} selectedFeatureIds - Array of feature ID keys from AWS_FEATURES
+ * @returns {string[]} Sorted, deduplicated IAM action strings
+ */
+export function getAwsActions(selectedFeatureIds) {
+  const allActions = [];
+  for (const id of selectedFeatureIds) {
+    const feature = AWS_FEATURES[id];
+    if (feature && Array.isArray(feature.actions)) {
+      allActions.push(...feature.actions);
+    }
+  }
+  return [...new Set(allActions)].sort();
+}
+
+/**
+ * Generate a complete AWS IAM policy JSON document from selected features.
+ *
+ * Produces a policy with Version 2012-10-17, a single Allow statement
+ * containing all deduplicated actions, and Resource "*".
+ * If multiAccount is selected, its policy documents are appended as
+ * additional context in a wrapper structure.
+ *
+ * @param {string[]} selectedFeatureIds - Array of feature ID keys from AWS_FEATURES
+ * @returns {string} Pretty-printed JSON policy string
+ */
+export function generateAwsPolicy(selectedFeatureIds) {
+  const actions = getAwsActions(selectedFeatureIds);
+
+  const policy = {
+    Version: '2012-10-17',
+    Statement: [
+      {
+        Sid: 'InfobloxUDDIPermissions',
+        Effect: 'Allow',
+        Action: actions,
+        Resource: '*'
+      }
+    ]
+  };
+
+  return JSON.stringify(policy, null, 2);
+}
+
+/**
+ * Generate combined Terraform HCL for selected AWS features.
+ *
+ * Produces a single aws_iam_policy resource with all deduplicated actions.
+ * If multiAccount is selected, also generates aws_iam_role with trust policy
+ * and aws_iam_role_policy_attachment for Organizations.
+ *
+ * @param {string[]} selectedFeatureIds - Array of feature ID keys from AWS_FEATURES
+ * @returns {string} Terraform HCL string
+ */
+export function generateAwsTerraform(selectedFeatureIds) {
+  const actions = getAwsActions(selectedFeatureIds);
+  const parts = [];
+
+  if (actions.length > 0) {
+    const actionsHcl = actions.map(a => `          "${a}"`).join(',\n');
+    parts.push(`resource "aws_iam_policy" "infoblox_uddi_discovery" {
+  name        = "InfobloxUDDI-Discovery"
+  description = "Infoblox Universal DDI - Combined discovery permissions"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid    = "InfobloxUDDIPermissions"
+        Effect = "Allow"
+        Action = [
+${actionsHcl}
+        ]
+        Resource = "*"
+      }
+    ]
+  })
+}`);
+  }
+
+  if (selectedFeatureIds.includes('multiAccount')) {
+    parts.push(`# Sub-account: Discovery role with trust policy
+resource "aws_iam_role" "infoblox_uddi_discovery_role" {
+  name = "InfobloxUDDI-DiscoveryRole"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Principal = {
+          AWS = "arn:aws:iam::902917483333:root"
+        }
+        Action = "sts:AssumeRole"
+        Condition = {
+          StringEquals = {
+            "sts:ExternalId" = var.infoblox_external_id
+          }
+        }
+      }
+    ]
+  })
+}
+
+# Management account: Organizations read-only access
+resource "aws_iam_role_policy_attachment" "infoblox_uddi_org_readonly" {
+  role       = aws_iam_role.infoblox_uddi_management_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AWSOrganizationsReadOnlyAccess"
+}
+
+# Management account: STS AssumeRole policy
+resource "aws_iam_policy" "infoblox_uddi_sts_assume_role" {
+  name        = "InfobloxUDDI-STSAssumeRole"
+  description = "Infoblox Universal DDI - Allow assuming discovery role in sub-accounts"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect   = "Allow"
+        Action   = "sts:AssumeRole"
+        Resource = "arn:aws:iam::*:role/InfobloxUDDI-DiscoveryRole"
+      }
+    ]
+  })
+}`);
+  }
+
+  return parts.join('\n\n');
+}
+
+/**
+ * Generate a combined step-by-step setup guide for selected AWS features.
+ *
+ * Standard features produce IAM Console instructions for creating policies
+ * and roles. Multi-account adds sub-account role creation, trust policy
+ * configuration, and External ID instructions.
+ *
+ * @param {string[]} selectedFeatureIds - Array of feature ID keys from AWS_FEATURES
+ * @returns {string} Plain text guide with numbered steps
+ */
+export function generateAwsGuide(selectedFeatureIds) {
+  const actions = getAwsActions(selectedFeatureIds);
+  const hasMultiAccount = selectedFeatureIds.includes('multiAccount');
+  const steps = [];
+  let stepNum = 1;
+
+  if (actions.length > 0) {
+    steps.push(`${stepNum}. Open the AWS IAM Console and navigate to Policies > Create Policy.`);
+    stepNum++;
+    steps.push(`${stepNum}. Select the JSON tab and paste the generated policy document.`);
+    stepNum++;
+    steps.push(`${stepNum}. Name the policy "InfobloxUDDI-Discovery" and create it.`);
+    stepNum++;
+    steps.push(`${stepNum}. Create an IAM role named "InfobloxUDDI-DiscoveryRole".`);
+    stepNum++;
+    steps.push(`${stepNum}. Attach the "InfobloxUDDI-Discovery" policy to the role.`);
+    stepNum++;
+    steps.push(`${stepNum}. Configure the role ARN in the Infoblox Portal under cloud provider settings.`);
+    stepNum++;
+  }
+
+  if (hasMultiAccount) {
+    steps.push(`${stepNum}. In each sub-account: Create the IAM role "InfobloxUDDI-DiscoveryRole" with the trust policy allowing the Infoblox service account (arn:aws:iam::902917483333:root) to assume it.`);
+    stepNum++;
+    steps.push(`${stepNum}. Attach the relevant discovery policies to each sub-account role.`);
+    stepNum++;
+    steps.push(`${stepNum}. In the management account: Attach the "AWSOrganizationsReadOnlyAccess" managed policy to the IAM user or role used by Infoblox.`);
+    stepNum++;
+    steps.push(`${stepNum}. Create and attach the STS AssumeRole policy to allow the management account to assume roles in sub-accounts.`);
+    stepNum++;
+    steps.push(`${stepNum}. Enter the External ID from the Infoblox Portal when configuring the trust policy in each sub-account.`);
+    stepNum++;
+  }
+
+  return steps.join('\n');
+}
