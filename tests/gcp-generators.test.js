@@ -24,19 +24,19 @@ describe('getGcpRoles', () => {
     assert.deepStrictEqual(result, []);
   });
 
-  it('returns 2 roles for assetDiscovery', () => {
+  it('returns empty array for assetDiscovery (custom perms only)', () => {
     const result = getGcpRoles(['assetDiscovery']);
-    assert.equal(result.length, 2);
-    const roles = result.map(r => r.role).sort();
-    assert.deepStrictEqual(roles, ['roles/compute.networkViewer', 'roles/compute.viewer']);
-    assert.equal(result[0].scope, 'project');
+    assert.deepStrictEqual(result, []);
   });
 
-  it('returns 1 role for dnsReadOnly', () => {
+  it('returns empty array for dnsReadOnly (custom perms only)', () => {
     const result = getGcpRoles(['dnsReadOnly']);
-    assert.equal(result.length, 1);
-    assert.equal(result[0].role, 'roles/dns.reader');
-    assert.equal(result[0].scope, 'project');
+    assert.deepStrictEqual(result, []);
+  });
+
+  it('returns empty array for dnsReadWrite (custom perms only)', () => {
+    const result = getGcpRoles(['dnsReadWrite']);
+    assert.deepStrictEqual(result, []);
   });
 
   it('returns empty array for cloudForwardingInbound (custom perms only)', () => {
@@ -44,9 +44,9 @@ describe('getGcpRoles', () => {
     assert.deepStrictEqual(result, []);
   });
 
-  it('returns 3 roles for assetDiscovery + dnsReadOnly (no overlap)', () => {
+  it('returns empty for assetDiscovery + dnsReadOnly (all custom)', () => {
     const result = getGcpRoles(['assetDiscovery', 'dnsReadOnly']);
-    assert.equal(result.length, 3);
+    assert.deepStrictEqual(result, []);
   });
 
   it('returns 2 org/folder roles for multiProjectOrg', () => {
@@ -56,14 +56,15 @@ describe('getGcpRoles', () => {
     assert.deepStrictEqual(scopes, ['folder', 'organization']);
   });
 
-  it('deduplicates roles when same role appears in multiple features', () => {
-    // assetDiscovery and dnsReadWrite both have predefined roles; no overlap
-    // but selecting all features should deduplicate by role name
+  it('returns only 2 roles for all features combined (multiProjectOrg only)', () => {
     const allIds = Object.keys(GCP_FEATURES);
     const result = getGcpRoles(allIds);
-    const roleNames = result.map(r => r.role);
-    const uniqueNames = [...new Set(roleNames)];
-    assert.equal(roleNames.length, uniqueNames.length, 'should have no duplicate roles');
+    assert.equal(result.length, 2);
+    const roleNames = result.map(r => r.role).sort();
+    assert.deepStrictEqual(roleNames, [
+      'roles/resourcemanager.folderViewer',
+      'roles/resourcemanager.organizationViewer'
+    ]);
   });
 });
 
@@ -106,15 +107,34 @@ describe('getGcpCustomPermissions', () => {
     assert.equal(result.length, 13);
   });
 
+  it('returns exactly 7 permissions for dnsReadOnly', () => {
+    const result = getGcpCustomPermissions(['dnsReadOnly']);
+    assert.equal(result.length, 7);
+    assert.ok(result.includes('dns.managedZones.get'));
+    assert.ok(result.includes('dns.resourceRecordSets.list'));
+  });
+
+  it('returns exactly 16 permissions for dnsReadWrite', () => {
+    const result = getGcpCustomPermissions(['dnsReadWrite']);
+    assert.equal(result.length, 16);
+    assert.ok(result.includes('dns.managedZones.create'));
+    assert.ok(result.includes('dns.resourceRecordSets.delete'));
+    assert.ok(result.includes('dns.changes.create'));
+  });
+
+  it('dnsReadWrite permissions include all dnsReadOnly permissions plus write actions', () => {
+    const readOnly = getGcpCustomPermissions(['dnsReadOnly']);
+    const readWrite = getGcpCustomPermissions(['dnsReadWrite']);
+    for (const perm of readOnly) {
+      assert.ok(readWrite.includes(perm), `dnsReadWrite should include ${perm} from dnsReadOnly`);
+    }
+    assert.ok(readWrite.length > readOnly.length, 'dnsReadWrite should have more permissions than dnsReadOnly');
+  });
+
   it('returns sorted permissions', () => {
     const result = getGcpCustomPermissions(['cloudForwardingInbound']);
     const sorted = [...result].sort();
     assert.deepStrictEqual(result, sorted);
-  });
-
-  it('returns empty array for features with no custom permissions', () => {
-    const result = getGcpCustomPermissions(['dnsReadOnly']);
-    assert.deepStrictEqual(result, []);
   });
 });
 
@@ -126,28 +146,37 @@ describe('generateGcpPolicy', () => {
     assert.equal(result, '');
   });
 
-  it('includes gcloud projects add-iam-policy-binding for predefined roles', () => {
+  it('includes gcloud iam roles create for dnsReadOnly custom permissions', () => {
     const result = generateGcpPolicy(['dnsReadOnly']);
-    assert.ok(result.includes('gcloud projects add-iam-policy-binding'));
-    assert.ok(result.includes('roles/dns.reader'));
+    assert.ok(result.includes('gcloud iam roles create'));
+    assert.ok(result.includes('dns.managedZones.get'));
   });
 
-  it('includes gcloud iam roles create for custom permissions', () => {
+  it('includes gcloud iam roles create for storageBuckets custom permissions', () => {
     const result = generateGcpPolicy(['storageBuckets']);
     assert.ok(result.includes('gcloud iam roles create'));
     assert.ok(result.includes('storage.buckets.list'));
   });
 
-  it('includes both predefined and custom commands for mixed features', () => {
+  it('generates only custom role commands for assetDiscovery (no predefined)', () => {
     const result = generateGcpPolicy(['assetDiscovery']);
-    assert.ok(result.includes('gcloud projects add-iam-policy-binding'));
     assert.ok(result.includes('gcloud iam roles create'));
+    assert.ok(result.includes('compute.instances.list'));
+    // Should not contain predefined compute roles
+    assert.ok(!result.includes('roles/compute.viewer'));
+    assert.ok(!result.includes('roles/compute.networkViewer'));
   });
 
   it('includes organization and folder commands for multiProjectOrg', () => {
     const result = generateGcpPolicy(['multiProjectOrg']);
     assert.ok(result.includes('organizations add-iam-policy-binding'));
     assert.ok(result.includes('folders add-iam-policy-binding') || result.includes('resource-manager folders add-iam-policy-binding'));
+  });
+
+  it('includes predefined role binding only for multiProjectOrg', () => {
+    const result = generateGcpPolicy(['multiProjectOrg']);
+    assert.ok(result.includes('roles/resourcemanager.organizationViewer'));
+    assert.ok(result.includes('roles/resourcemanager.folderViewer'));
   });
 });
 
@@ -159,10 +188,18 @@ describe('generateGcpTerraform', () => {
     assert.equal(result, '');
   });
 
-  it('includes google_project_iam_member for predefined roles', () => {
+  it('generates custom role terraform for dnsReadOnly (no predefined role)', () => {
     const result = generateGcpTerraform(['dnsReadOnly']);
+    assert.ok(result.includes('google_project_iam_custom_role'));
     assert.ok(result.includes('google_project_iam_member'));
-    assert.ok(result.includes('roles/dns.reader'));
+    assert.ok(!result.includes('roles/dns.reader'));
+  });
+
+  it('generates custom role terraform for assetDiscovery (no predefined roles)', () => {
+    const result = generateGcpTerraform(['assetDiscovery']);
+    assert.ok(result.includes('google_project_iam_custom_role'));
+    assert.ok(!result.includes('roles/compute.viewer'));
+    assert.ok(!result.includes('roles/compute.networkViewer'));
   });
 
   it('includes google_project_iam_custom_role for custom permissions', () => {
