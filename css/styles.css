@@ -513,6 +513,19 @@ input {
   outline-offset: 2px;
 }
 
+/* 7c-ii. Crossfade transition for mode switching
+   -------------------------------------------------------------------------- */
+
+#workspace-content {
+  opacity: 1;
+  transition: opacity 200ms ease;
+}
+
+.workspace__content--fading {
+  opacity: 0;
+  transition: opacity 200ms ease;
+}
+
 /* 7d. Advanced Mode Checkboxes
    -------------------------------------------------------------------------- */
 
