@@ -69,10 +69,10 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Design
 
-- [ ] **DSN-01**: Site uses Infoblox branding (blue #0058a2, logo, product name)
-- [ ] **DSN-02**: Provider cards show respective brand colors (AWS orange, Azure blue, GCP blue)
-- [ ] **DSN-03**: Output panel uses dark theme with syntax highlighting
-- [ ] **DSN-04**: Layout is responsive — stacks vertically on mobile/tablet
+- [x] **DSN-01**: Site uses Infoblox branding (blue #0058a2, logo, product name)
+- [x] **DSN-02**: Provider cards show respective brand colors (AWS orange, Azure blue, GCP blue)
+- [x] **DSN-03**: Output panel uses dark theme with syntax highlighting
+- [x] **DSN-04**: Layout is responsive — stacks vertically on mobile/tablet
 - [ ] **DSN-05**: Site works offline after first page load (no backend calls, no external API)
 
 ## v2 Requirements
@@ -110,10 +110,10 @@ Deferred to future release. Tracked but not in current roadmap.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| DSN-01 | Phase 1 | Pending |
-| DSN-02 | Phase 1 | Pending |
-| DSN-03 | Phase 1 | Pending |
-| DSN-04 | Phase 1 | Pending |
+| DSN-01 | Phase 1 | Complete |
+| DSN-02 | Phase 1 | Complete |
+| DSN-03 | Phase 1 | Complete |
+| DSN-04 | Phase 1 | Complete |
 | PROV-01 | Phase 2 | Pending |
 | PROV-02 | Phase 2 | Pending |
 | PROV-03 | Phase 2 | Pending |

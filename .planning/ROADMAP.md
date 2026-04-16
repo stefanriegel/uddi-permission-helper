@@ -34,7 +34,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   4. Layout stacks vertically on a viewport narrower than 900px
 **Plans**: 1 plan
 Plans:
-- [ ] 01-01-PLAN.md — Infoblox-branded HTML/CSS shell with design tokens, semantic HTML, and responsive layout
+- [x] 01-01-PLAN.md — Infoblox-branded HTML/CSS shell with design tokens, semantic HTML, and responsive layout
 **UI hint**: yes
 
 ### Phase 2: Provider Selection UI
