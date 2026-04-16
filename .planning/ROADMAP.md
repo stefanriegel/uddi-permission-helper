@@ -89,9 +89,10 @@ Plans:
   3. Cloud Forwarding inbound outputs 10 custom permissions; outbound outputs 15; both outputs 21 combined
   4. Internal Ranges outputs 13 networkconnectivity permissions
   5. Multi-project/org outputs organizationViewer + folderViewer roles plus 5 resourcemanager permissions
-**Plans**: 1 plan
+**Plans**: 2 plans
 Plans:
-- [ ] 01-01-PLAN.md — Infoblox-branded HTML/CSS shell with design tokens, semantic HTML, and responsive layout
+- [ ] 05-01-PLAN.md — GCP feature data module with all 8 categories (predefined roles + custom permissions, Terraform HCL, setup guides)
+- [ ] 05-02-PLAN.md — Permission deduplication and output generator functions (getGcpRoles, getGcpCustomPermissions, generateGcpPolicy, generateGcpTerraform, generateGcpGuide) with TDD
 
 ### Phase 6: Feature Selection Wizard
 **Goal**: Customer can answer sequential yes/no questions to scope features, or switch to direct checkboxes — state is preserved when switching modes
@@ -147,7 +148,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 | 2. Provider Selection UI | 1/1 | Complete | 2026-04-16 |
 | 3. AWS Permission Data | 0/2 | Not started | - |
 | 4. Azure Permission Data | 0/2 | Not started | - |
-| 5. GCP Permission Data | 0/? | Not started | - |
+| 5. GCP Permission Data | 0/2 | Not started | - |
 | 6. Feature Selection Wizard | 0/? | Not started | - |
 | 7. Output Engine + Utilities | 0/? | Not started | - |
 | 8. Hardening + Deploy | 0/? | Not started | - |
