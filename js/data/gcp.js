@@ -573,3 +573,252 @@ export const GCP_FEATURES = {
   internalRanges,
   multiProjectOrg
 };
+
+/**
+ * Collect and deduplicate predefined roles from selected GCP features.
+ *
+ * Deduplicates by role string using a Map so that each predefined role
+ * appears only once in the output regardless of how many features include it.
+ *
+ * @param {string[]} selectedFeatureIds - Array of feature ID keys from GCP_FEATURES
+ * @returns {Array<{role: string, scope: string}>} Deduplicated predefined roles
+ */
+export function getGcpRoles(selectedFeatureIds) {
+  const roleMap = new Map();
+  for (const id of selectedFeatureIds) {
+    const feature = GCP_FEATURES[id];
+    if (feature && Array.isArray(feature.predefinedRoles)) {
+      for (const r of feature.predefinedRoles) {
+        if (!roleMap.has(r.role)) {
+          roleMap.set(r.role, { role: r.role, scope: r.scope });
+        }
+      }
+    }
+  }
+  return [...roleMap.values()];
+}
+
+/**
+ * Collect and deduplicate custom permissions from selected GCP features.
+ *
+ * Merges customPermissions arrays across all selected features, removes
+ * duplicates using a Set, and returns a sorted array.
+ *
+ * @param {string[]} selectedFeatureIds - Array of feature ID keys from GCP_FEATURES
+ * @returns {string[]} Sorted, deduplicated custom permission strings
+ */
+export function getGcpCustomPermissions(selectedFeatureIds) {
+  const permSet = new Set();
+  for (const id of selectedFeatureIds) {
+    const feature = GCP_FEATURES[id];
+    if (feature && Array.isArray(feature.customPermissions)) {
+      for (const p of feature.customPermissions) {
+        permSet.add(p);
+      }
+    }
+  }
+  return [...permSet].sort();
+}
+
+/**
+ * Generate gcloud CLI commands for the selected GCP features.
+ *
+ * Produces `gcloud projects add-iam-policy-binding` commands for predefined
+ * roles and `gcloud iam roles create` plus binding commands for custom
+ * permissions. For multiProjectOrg, includes organization-level and
+ * folder-level gcloud commands.
+ *
+ * @param {string[]} selectedFeatureIds - Array of feature ID keys from GCP_FEATURES
+ * @returns {string} gcloud CLI commands string
+ */
+export function generateGcpPolicy(selectedFeatureIds) {
+  const roles = getGcpRoles(selectedFeatureIds);
+  const customPerms = getGcpCustomPermissions(selectedFeatureIds);
+  const hasMultiProject = selectedFeatureIds.includes('multiProjectOrg');
+
+  if (roles.length === 0 && customPerms.length === 0) {
+    return '';
+  }
+
+  const parts = [];
+
+  // Predefined role bindings
+  const projectRoles = roles.filter(r => r.scope === 'project');
+  const orgRoles = roles.filter(r => r.scope === 'organization');
+  const folderRoles = roles.filter(r => r.scope === 'folder');
+
+  for (const r of projectRoles) {
+    parts.push(`gcloud projects add-iam-policy-binding PROJECT_ID \\
+  --member="serviceAccount:SA_EMAIL" \\
+  --role="${r.role}"`);
+  }
+
+  for (const r of orgRoles) {
+    parts.push(`gcloud organizations add-iam-policy-binding ORG_ID \\
+  --member="serviceAccount:SA_EMAIL" \\
+  --role="${r.role}"`);
+  }
+
+  for (const r of folderRoles) {
+    parts.push(`gcloud resource-manager folders add-iam-policy-binding FOLDER_ID \\
+  --member="serviceAccount:SA_EMAIL" \\
+  --role="${r.role}"`);
+  }
+
+  // Custom role creation and binding
+  if (customPerms.length > 0) {
+    const permList = customPerms.join(',');
+    parts.push(`gcloud iam roles create infoblox_uddi_custom \\
+  --project=PROJECT_ID \\
+  --title="Infoblox UDDI Custom Role" \\
+  --permissions="${permList}"`);
+
+    parts.push(`gcloud projects add-iam-policy-binding PROJECT_ID \\
+  --member="serviceAccount:SA_EMAIL" \\
+  --role="projects/PROJECT_ID/roles/infoblox_uddi_custom"`);
+  }
+
+  return parts.join('\n\n');
+}
+
+/**
+ * Generate Terraform HCL for the selected GCP features.
+ *
+ * Produces google_project_iam_member resource blocks for predefined roles,
+ * google_project_iam_custom_role + google_project_iam_member for custom
+ * permissions, and google_organization_iam_member / google_folder_iam_member
+ * blocks for multiProjectOrg.
+ *
+ * @param {string[]} selectedFeatureIds - Array of feature ID keys from GCP_FEATURES
+ * @returns {string} Terraform HCL string
+ */
+export function generateGcpTerraform(selectedFeatureIds) {
+  const roles = getGcpRoles(selectedFeatureIds);
+  const customPerms = getGcpCustomPermissions(selectedFeatureIds);
+
+  if (roles.length === 0 && customPerms.length === 0) {
+    return '';
+  }
+
+  const parts = [];
+
+  // Predefined role bindings
+  const projectRoles = roles.filter(r => r.scope === 'project');
+  const orgRoles = roles.filter(r => r.scope === 'organization');
+  const folderRoles = roles.filter(r => r.scope === 'folder');
+
+  for (const r of projectRoles) {
+    const safeName = r.role.replace('roles/', '').replace(/\./g, '_');
+    parts.push(`resource "google_project_iam_member" "infoblox_uddi_${safeName}" {
+  project = var.project_id
+  role    = "${r.role}"
+  member  = "serviceAccount:\${var.service_account_email}"
+}`);
+  }
+
+  for (const r of orgRoles) {
+    const safeName = r.role.replace('roles/', '').replace(/\./g, '_');
+    parts.push(`resource "google_organization_iam_member" "infoblox_uddi_${safeName}" {
+  org_id = var.organization_id
+  role   = "${r.role}"
+  member = "serviceAccount:\${var.service_account_email}"
+}`);
+  }
+
+  for (const r of folderRoles) {
+    const safeName = r.role.replace('roles/', '').replace(/\./g, '_');
+    parts.push(`resource "google_folder_iam_member" "infoblox_uddi_${safeName}" {
+  folder = var.folder_id
+  role   = "${r.role}"
+  member = "serviceAccount:\${var.service_account_email}"
+}`);
+  }
+
+  // Custom role + binding
+  if (customPerms.length > 0) {
+    const permsHcl = customPerms.map(p => `    "${p}"`).join(',\n');
+    parts.push(`resource "google_project_iam_custom_role" "infoblox_uddi_custom" {
+  project     = var.project_id
+  role_id     = "infobloxUddiCustom"
+  title       = "Infoblox UDDI Custom Role"
+  description = "Infoblox Universal DDI - Combined custom permissions"
+  permissions = [
+${permsHcl}
+  ]
+}
+
+resource "google_project_iam_member" "infoblox_uddi_custom" {
+  project = var.project_id
+  role    = google_project_iam_custom_role.infoblox_uddi_custom.id
+  member  = "serviceAccount:\${var.service_account_email}"
+}`);
+  }
+
+  return parts.join('\n\n');
+}
+
+/**
+ * Generate a numbered step-by-step setup guide for the selected GCP features.
+ *
+ * Starts with service account creation, includes predefined role binding
+ * steps, custom role creation steps, org/folder instructions for
+ * multiProjectOrg, and ends with Infoblox Portal configuration.
+ *
+ * @param {string[]} selectedFeatureIds - Array of feature ID keys from GCP_FEATURES
+ * @returns {string} Plain text guide with numbered steps
+ */
+export function generateGcpGuide(selectedFeatureIds) {
+  const roles = getGcpRoles(selectedFeatureIds);
+  const customPerms = getGcpCustomPermissions(selectedFeatureIds);
+  const hasMultiProject = selectedFeatureIds.includes('multiProjectOrg');
+
+  if (roles.length === 0 && customPerms.length === 0) {
+    return '';
+  }
+
+  const steps = [];
+  let stepNum = 1;
+
+  // Step 1: Create service account
+  steps.push(`${stepNum}. Open the GCP Console and navigate to IAM & Admin > Service Accounts. Create a service account named "infoblox-uddi" (or use an existing one).`);
+  stepNum++;
+
+  // Predefined role bindings
+  const projectRoles = roles.filter(r => r.scope === 'project');
+  const orgRoles = roles.filter(r => r.scope === 'organization');
+  const folderRoles = roles.filter(r => r.scope === 'folder');
+
+  if (projectRoles.length > 0) {
+    const roleNames = projectRoles.map(r => `"${r.role}"`).join(', ');
+    steps.push(`${stepNum}. Navigate to IAM & Admin > IAM. Click "Grant Access", add the service account, and assign the following predefined roles: ${roleNames}.`);
+    stepNum++;
+  }
+
+  // Org-level bindings
+  if (orgRoles.length > 0) {
+    const roleNames = orgRoles.map(r => `"${r.role}"`).join(', ');
+    steps.push(`${stepNum}. At the organization level in IAM & Admin > IAM, grant the service account the following roles: ${roleNames}.`);
+    stepNum++;
+  }
+
+  // Folder-level bindings
+  if (folderRoles.length > 0) {
+    const roleNames = folderRoles.map(r => `"${r.role}"`).join(', ');
+    steps.push(`${stepNum}. At the target folder level in IAM & Admin > IAM, grant the service account the following roles: ${roleNames}.`);
+    stepNum++;
+  }
+
+  // Custom role creation
+  if (customPerms.length > 0) {
+    steps.push(`${stepNum}. Navigate to IAM & Admin > Roles and click "Create Role". Name it "Infoblox UDDI Custom Role" and add the following ${customPerms.length} permissions: ${customPerms.join(', ')}.`);
+    stepNum++;
+
+    steps.push(`${stepNum}. Navigate to IAM & Admin > IAM. Click "Grant Access", add the service account, and assign the custom role created in the previous step.`);
+    stepNum++;
+  }
+
+  // Final step: Infoblox Portal
+  steps.push(`${stepNum}. In the Infoblox Portal, navigate to cloud provider settings and configure the GCP service account credentials (key file or workload identity).`);
+
+  return steps.join('\n');
+}
