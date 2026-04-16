@@ -288,6 +288,12 @@ input {
   padding: var(--space-2xl) 0;
 }
 
+/* Workspace header and content visibility */
+.workspace__header, .workspace__content { display: none; }
+.workspace--active .workspace__header { display: flex; }
+.workspace--active .workspace__content { display: block; }
+.workspace--active .workspace__empty { display: none; }
+
 /* Workspace visibility states */
 .workspace--hidden {
   display: none;
@@ -309,12 +315,202 @@ input {
   }
 }
 
-/* Provider label in workspace (shown when provider selected) */
-.workspace__provider-label {
-  color: var(--color-text);
-  text-align: center;
-  padding: var(--space-2xl) 0;
+/* Provider label in workspace — replaced by workspace__title in workspace__header */
+
+/* 7b. Workspace Header with Mode Toggle
+   -------------------------------------------------------------------------- */
+
+.workspace__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-lg);
+}
+
+.workspace__title {
+  font-size: var(--text-heading);
   font-weight: var(--weight-semibold);
+  margin: 0;
+}
+
+/* Mode toggle switch */
+.workspace__mode-toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.mode-toggle__label {
+  font-size: var(--text-label);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+}
+
+.mode-toggle__label--active {
+  color: var(--color-text);
+  font-weight: var(--weight-semibold);
+}
+
+.mode-toggle__switch {
+  width: 44px;
+  height: 24px;
+  border-radius: 12px;
+  background: var(--color-border);
+  border: none;
+  cursor: pointer;
+  position: relative;
+  padding: 0;
+  transition: background 200ms ease;
+}
+
+.mode-toggle__switch[aria-checked="true"] {
+  background: var(--color-accent);
+}
+
+.mode-toggle__thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: white;
+  transition: transform 200ms ease;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+.mode-toggle__switch[aria-checked="true"] .mode-toggle__thumb {
+  transform: translateX(20px);
+}
+
+.mode-toggle__switch:focus {
+  outline: 3px solid var(--color-ring);
+  outline-offset: 2px;
+}
+
+/* 7c. Wizard Question Cards
+   -------------------------------------------------------------------------- */
+
+/* Progress indicator */
+.wizard__progress {
+  font-size: var(--text-label);
+  color: var(--color-text-secondary);
+  margin: 0 0 var(--space-md) 0;
+}
+
+/* Wizard question cards */
+.wizard-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  margin-bottom: var(--space-md);
+  transition: opacity 200ms ease, border-color 200ms ease;
+}
+
+.wizard-card--active {
+  border-color: var(--color-secondary);
+  box-shadow: 0 0 0 1px var(--color-secondary);
+}
+
+.wizard-card--locked {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.wizard-card--answered {
+  border-color: var(--color-border);
+}
+
+.wizard-card--sub {
+  margin-left: var(--space-xl);
+  border-left: 3px solid var(--color-secondary);
+}
+
+/* Question text */
+.wizard-card__question {
+  font-size: var(--text-body);
+  color: var(--color-text);
+  margin: 0 0 var(--space-md) 0;
+}
+
+.wizard-card--locked .wizard-card__question {
+  margin-bottom: 0;
+}
+
+/* Yes/No buttons */
+.wizard-card__actions {
+  display: flex;
+  gap: var(--space-sm);
+}
+
+.wizard-card__btn {
+  padding: var(--space-sm) var(--space-lg);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: var(--text-label);
+  font-weight: var(--weight-semibold);
+  cursor: pointer;
+  min-width: 72px;
+  transition: background 150ms ease, border-color 150ms ease;
+  font-family: inherit;
+}
+
+.wizard-card__btn:hover {
+  border-color: var(--color-border-hover);
+}
+
+.wizard-card__btn--selected {
+  background: var(--color-secondary-bg);
+  border-color: var(--color-secondary);
+  color: var(--color-primary);
+}
+
+.wizard-card__btn--selected-no {
+  background: var(--color-surface-alt);
+  border-color: var(--color-border);
+  color: var(--color-text-secondary);
+}
+
+.wizard-card__btn:focus {
+  outline: 3px solid var(--color-ring);
+  outline-offset: 2px;
+}
+
+/* Sub-question option buttons */
+.wizard-card__options {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.wizard-card__option {
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: var(--text-label);
+  cursor: pointer;
+  text-align: left;
+  transition: background 150ms ease, border-color 150ms ease;
+  font-family: inherit;
+}
+
+.wizard-card__option:hover {
+  border-color: var(--color-border-hover);
+}
+
+.wizard-card__option--selected {
+  background: var(--color-secondary-bg);
+  border-color: var(--color-secondary);
+}
+
+.wizard-card__option:focus {
+  outline: 3px solid var(--color-ring);
+  outline-offset: 2px;
 }
 
 /* 8. Output Panel

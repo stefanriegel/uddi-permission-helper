@@ -2,8 +2,28 @@
  * Entry point — wires event listeners to state and UI modules.
  */
 
-import { setActiveProvider, getActiveProvider, hasProviderData } from './state.js';
-import { updateProviderCards, updateWorkspace } from './ui.js';
+import { setActiveProvider, getActiveProvider, hasProviderData, setFeature, getFeatures, getSelectionMode } from './state.js';
+import { updateProviderCards, updateWorkspace, renderWizard } from './ui.js';
+import { getQuestionsForProvider } from './questions.js';
+
+/**
+ * Re-render the wizard for the current active provider.
+ */
+function refreshWizard() {
+  const providerId = getActiveProvider();
+  if (!providerId) return;
+
+  if (getSelectionMode() !== 'wizard') return;
+
+  const questions = getQuestionsForProvider(providerId);
+  const features = getFeatures(providerId);
+
+  renderWizard(questions, features, (featureId, enabled) => {
+    setFeature(providerId, featureId, enabled);
+    updateProviderCards(providerId, hasProviderData);
+    refreshWizard();
+  });
+}
 
 document.addEventListener('DOMContentLoaded', () => {
   const workspace = document.querySelector('.workspace');
@@ -26,6 +46,7 @@ document.addEventListener('DOMContentLoaded', () => {
       setActiveProvider(providerId);
       updateProviderCards(providerId, hasProviderData);
       updateWorkspace(providerId);
+      refreshWizard();
     });
   });
 });
