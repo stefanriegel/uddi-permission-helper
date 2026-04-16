@@ -74,9 +74,10 @@ Plans:
   2. Public DNS read-write outputs a DNS Zone Contributor assignment; Private DNS outputs a Private DNS Zone Contributor assignment
   3. Cloud Forwarding discovery outputs a custom role with 6 read-only permissions; full management outputs a custom role with 21 permissions
   4. Multi-subscription outputs management group scope guidance
-**Plans**: 1 plan
+**Plans**: 2 plans
 Plans:
-- [ ] 01-01-PLAN.md — Infoblox-branded HTML/CSS shell with design tokens, semantic HTML, and responsive layout
+- [ ] 04-01-PLAN.md — Azure feature data module with all 5 categories (Reader, DNS Zone Contributor, Private DNS Zone Contributor roles + custom roles with 6/21 permissions)
+- [ ] 04-02-PLAN.md — Role deduplication and output generator functions (getAzureRoles, generateAzurePolicy, generateAzureTerraform, generateAzureGuide) with TDD
 
 ### Phase 5: GCP Permission Data
 **Goal**: All six GCP feature categories produce correct predefined role bindings, custom role definitions, Terraform HCL, and setup guide text
@@ -145,7 +146,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 | 1. HTML Shell + Branding | 1/1 | Complete | 2026-04-16 |
 | 2. Provider Selection UI | 1/1 | Complete | 2026-04-16 |
 | 3. AWS Permission Data | 0/2 | Not started | - |
-| 4. Azure Permission Data | 0/? | Not started | - |
+| 4. Azure Permission Data | 0/2 | Not started | - |
 | 5. GCP Permission Data | 0/? | Not started | - |
 | 6. Feature Selection Wizard | 0/? | Not started | - |
 | 7. Output Engine + Utilities | 0/? | Not started | - |
