@@ -91,7 +91,7 @@ Plans:
   5. Multi-project/org outputs organizationViewer + folderViewer roles plus 5 resourcemanager permissions
 **Plans**: 2 plans
 Plans:
-- [ ] 05-01-PLAN.md — GCP feature data module with all 8 categories (predefined roles + custom permissions, Terraform HCL, setup guides)
+- [x] 05-01-PLAN.md — GCP feature data module with all 8 categories (predefined roles + custom permissions, Terraform HCL, setup guides)
 - [ ] 05-02-PLAN.md — Permission deduplication and output generator functions (getGcpRoles, getGcpCustomPermissions, generateGcpPolicy, generateGcpTerraform, generateGcpGuide) with TDD
 
 ### Phase 6: Feature Selection Wizard

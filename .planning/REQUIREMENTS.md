@@ -46,15 +46,15 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### GCP Permissions
 
-- [ ] **GCP-01**: Asset Discovery outputs Compute Viewer + Compute Network Viewer roles + 25 custom permissions
-- [ ] **GCP-02**: Storage Buckets outputs 2 custom permissions (buckets.list, buckets.getIamPolicy)
-- [ ] **GCP-03**: DNS read-only outputs dns.reader predefined role
-- [ ] **GCP-04**: DNS read-write outputs dns.admin predefined role
-- [ ] **GCP-05**: Cloud Forwarding inbound outputs 10 custom permissions
-- [ ] **GCP-06**: Cloud Forwarding outbound outputs 15 custom permissions
-- [ ] **GCP-07**: Cloud Forwarding both outputs combined 21 custom permissions
-- [ ] **GCP-08**: Internal Ranges outputs 13 networkconnectivity permissions
-- [ ] **GCP-09**: Multi-project/org outputs organizationViewer + folderViewer roles + 5 resourcemanager permissions
+- [x] **GCP-01**: Asset Discovery outputs Compute Viewer + Compute Network Viewer roles + 25 custom permissions
+- [x] **GCP-02**: Storage Buckets outputs 2 custom permissions (buckets.list, buckets.getIamPolicy)
+- [x] **GCP-03**: DNS read-only outputs dns.reader predefined role
+- [x] **GCP-04**: DNS read-write outputs dns.admin predefined role
+- [x] **GCP-05**: Cloud Forwarding inbound outputs 10 custom permissions
+- [x] **GCP-06**: Cloud Forwarding outbound outputs 15 custom permissions
+- [x] **GCP-07**: Cloud Forwarding both outputs combined 21 custom permissions
+- [x] **GCP-08**: Internal Ranges outputs 13 networkconnectivity permissions
+- [x] **GCP-09**: Multi-project/org outputs organizationViewer + folderViewer roles + 5 resourcemanager permissions
 
 ### Output
 
@@ -133,15 +133,15 @@ Deferred to future release. Tracked but not in current roadmap.
 | AZR-05 | Phase 4 | Complete |
 | AZR-06 | Phase 4 | Complete |
 | AZR-07 | Phase 4 | Complete |
-| GCP-01 | Phase 5 | Pending |
-| GCP-02 | Phase 5 | Pending |
-| GCP-03 | Phase 5 | Pending |
-| GCP-04 | Phase 5 | Pending |
-| GCP-05 | Phase 5 | Pending |
-| GCP-06 | Phase 5 | Pending |
-| GCP-07 | Phase 5 | Pending |
-| GCP-08 | Phase 5 | Pending |
-| GCP-09 | Phase 5 | Pending |
+| GCP-01 | Phase 5 | Complete |
+| GCP-02 | Phase 5 | Complete |
+| GCP-03 | Phase 5 | Complete |
+| GCP-04 | Phase 5 | Complete |
+| GCP-05 | Phase 5 | Complete |
+| GCP-06 | Phase 5 | Complete |
+| GCP-07 | Phase 5 | Complete |
+| GCP-08 | Phase 5 | Complete |
+| GCP-09 | Phase 5 | Complete |
 | FEAT-01 | Phase 6 | Pending |
 | FEAT-02 | Phase 6 | Pending |
 | FEAT-03 | Phase 6 | Pending |
