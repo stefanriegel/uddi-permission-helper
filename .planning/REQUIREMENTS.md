@@ -58,14 +58,14 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Output
 
-- [ ] **OUT-01**: Policy tab shows native format (AWS JSON, Azure CLI commands + custom role JSON, GCP gcloud commands)
-- [ ] **OUT-02**: Terraform tab shows provider-appropriate resource blocks
-- [ ] **OUT-03**: Setup Guide tab shows step-by-step instructions per provider
+- [x] **OUT-01**: Policy tab shows native format (AWS JSON, Azure CLI commands + custom role JSON, GCP gcloud commands)
+- [x] **OUT-02**: Terraform tab shows provider-appropriate resource blocks
+- [x] **OUT-03**: Setup Guide tab shows step-by-step instructions per provider
 - [ ] **OUT-04**: Copy button copies current tab content to clipboard
 - [ ] **OUT-05**: Download button saves current output as file (.json, .tf, .txt, .sh)
-- [ ] **OUT-06**: Permission count badge updates live as user selects features
-- [ ] **OUT-07**: Each permission includes rationale explaining why it is needed
-- [ ] **OUT-08**: Output updates in real-time as wizard answers change
+- [x] **OUT-06**: Permission count badge updates live as user selects features
+- [x] **OUT-07**: Each permission includes rationale explaining why it is needed
+- [x] **OUT-08**: Output updates in real-time as wizard answers change
 
 ### Design
 
@@ -148,14 +148,14 @@ Deferred to future release. Tracked but not in current roadmap.
 | FEAT-04 | Phase 6 | Complete |
 | FEAT-05 | Phase 6 | Complete |
 | FEAT-06 | Phase 6 | Complete |
-| OUT-01 | Phase 7 | Pending |
-| OUT-02 | Phase 7 | Pending |
-| OUT-03 | Phase 7 | Pending |
+| OUT-01 | Phase 7 | Complete |
+| OUT-02 | Phase 7 | Complete |
+| OUT-03 | Phase 7 | Complete |
 | OUT-04 | Phase 7 | Pending |
 | OUT-05 | Phase 7 | Pending |
-| OUT-06 | Phase 7 | Pending |
-| OUT-07 | Phase 7 | Pending |
-| OUT-08 | Phase 7 | Pending |
+| OUT-06 | Phase 7 | Complete |
+| OUT-07 | Phase 7 | Complete |
+| OUT-08 | Phase 7 | Complete |
 | DSN-05 | Phase 8 | Pending |
 
 **Coverage:**
