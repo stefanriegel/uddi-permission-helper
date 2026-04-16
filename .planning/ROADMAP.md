@@ -137,7 +137,7 @@ Plans:
   4. Site is accessible at a public GitHub Pages URL
 **Plans**: 1 plan
 Plans:
-- [ ] 08-01-PLAN.md — AWS policy size warning, offline cache hints, and deployment README
+- [x] 08-01-PLAN.md — AWS policy size warning, offline cache hints, and deployment README
 
 ## Progress
 

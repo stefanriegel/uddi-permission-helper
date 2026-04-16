@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: verifying
-stopped_at: Completed 07-02-PLAN.md
-last_updated: "2026-04-16T22:39:20.586Z"
+stopped_at: Completed 08-01-PLAN.md
+last_updated: "2026-04-16T22:46:30.878Z"
 last_activity: 2026-04-16
 progress:
   total_phases: 8
-  completed_phases: 7
-  total_plans: 12
-  completed_plans: 12
+  completed_phases: 8
+  total_plans: 13
+  completed_plans: 13
   percent: 0
 ---
 
@@ -21,12 +21,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-16)
 
 **Core value:** Customer can generate a minimal, security-team-approved permission policy in under 2 minutes
-**Current focus:** Phase 07 — output-engine-utilities
+**Current focus:** Phase 08 — hardening-deploy
 
 ## Current Position
 
-Phase: 8
-Plan: Not started
+Phase: 08 (hardening-deploy) — EXECUTING
+Plan: 1 of 1
 Status: Phase complete — ready for verification
 Last activity: 2026-04-16
 
@@ -64,6 +64,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 06 P02 | 2min | 2 tasks | 3 files |
 | Phase 07 P01 | 2min | 2 tasks | 4 files |
 | Phase 07 P02 | 1min | 1 tasks | 3 files |
+| Phase 08 P01 | 2min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -105,6 +106,8 @@ Recent decisions affecting current work:
 - [Phase 07]: Badge uses universal 'permissions' label across all providers
 - [Phase 07]: Copy uses navigator.clipboard.writeText with execCommand fallback for HTTP localhost
 - [Phase 07]: Download filenames follow {provider}-{format}.{ext} convention (e.g., aws-policy.json)
+- [Phase 08]: Use generateAwsPolicy() raw JSON for size check, not annotated output
+- [Phase 08]: Advisory cache meta hints for offline support; real headers from hosting provider
 
 ### Pending Todos
 
@@ -118,6 +121,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-16T22:36:12.600Z
-Stopped at: Completed 07-02-PLAN.md
+Last session: 2026-04-16T22:46:30.874Z
+Stopped at: Completed 08-01-PLAN.md
 Resume file: None

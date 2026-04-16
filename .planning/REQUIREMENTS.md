@@ -73,7 +73,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **DSN-02**: Provider cards show respective brand colors (AWS orange, Azure blue, GCP blue)
 - [x] **DSN-03**: Output panel uses dark theme with syntax highlighting
 - [x] **DSN-04**: Layout is responsive — stacks vertically on mobile/tablet
-- [ ] **DSN-05**: Site works offline after first page load (no backend calls, no external API)
+- [x] **DSN-05**: Site works offline after first page load (no backend calls, no external API)
 
 ## v2 Requirements
 
@@ -156,7 +156,7 @@ Deferred to future release. Tracked but not in current roadmap.
 | OUT-06 | Phase 7 | Complete |
 | OUT-07 | Phase 7 | Complete |
 | OUT-08 | Phase 7 | Complete |
-| DSN-05 | Phase 8 | Pending |
+| DSN-05 | Phase 8 | Complete |
 
 **Coverage:**
 - v1 requirements: 44 total
