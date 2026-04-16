@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>UDDI Permission Scope Helper - Infoblox</title>
+  <meta name="description" content="Generate least-privilege IAM policies for Infoblox Universal DDI cloud integrations with AWS, Azure, and GCP.">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+
+  <header class="header">
+    <div class="header__content">
+      <img src="assets/infoblox-logo.svg" alt="Infoblox" class="header__logo" width="160" height="32">
+      <span class="header__title">UDDI Permission Scope Helper</span>
+    </div>
+  </header>
+
+  <main class="main" id="main-content">
+
+    <section aria-label="Cloud provider selection">
+      <h1 class="section-heading">Select Cloud Provider</h1>
+      <nav class="providers" aria-label="Cloud provider selection">
+        <button class="provider-card provider-card--aws" type="button" aria-label="Select Amazon Web Services (AWS)">
+          <span class="provider-card__name">Amazon Web Services (AWS)</span>
+          <span class="provider-card__desc">IAM policies for VPC discovery, DNS, and cloud forwarding</span>
+        </button>
+        <button class="provider-card provider-card--azure" type="button" aria-label="Select Microsoft Azure">
+          <span class="provider-card__name">Microsoft Azure</span>
+          <span class="provider-card__desc">Role assignments for network discovery, DNS, and cloud forwarding</span>
+        </button>
+        <button class="provider-card provider-card--gcp" type="button" aria-label="Select Google Cloud Platform (GCP)">
+          <span class="provider-card__name">Google Cloud Platform (GCP)</span>
+          <span class="provider-card__desc">IAM roles for asset discovery, DNS, and cloud forwarding</span>
+        </button>
+      </nav>
+    </section>
+
+    <section class="workspace" aria-label="Feature selection workspace">
+      <p class="workspace__empty">Select a cloud provider above to begin.</p>
+    </section>
+
+    <section class="output" aria-label="Policy output">
+      <div class="output__tabs" role="tablist" aria-label="Output format">
+        <button class="output__tab output__tab--active" role="tab" id="tab-policy" aria-selected="true" aria-controls="panel-policy">Policy</button>
+        <button class="output__tab" role="tab" id="tab-terraform" aria-selected="false" aria-controls="panel-terraform">Terraform</button>
+        <button class="output__tab" role="tab" id="tab-guide" aria-selected="false" aria-controls="panel-guide">Setup Guide</button>
+      </div>
+      <div class="output__toolbar">
+        <span class="output__badge">0 permissions</span>
+        <button class="output__action" type="button">Copy</button>
+        <button class="output__action" type="button">Download</button>
+      </div>
+      <div class="output__content">
+        <div class="output__panel" role="tabpanel" id="panel-policy" aria-labelledby="tab-policy">Select a cloud provider and features to generate your permission policy.</div>
+        <div class="output__panel" role="tabpanel" id="panel-terraform" aria-labelledby="tab-terraform" hidden></div>
+        <div class="output__panel" role="tabpanel" id="panel-guide" aria-labelledby="tab-guide" hidden></div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="footer">
+    <p>Based on Infoblox Universal DDI documentation. Not an official Infoblox product.</p>
+  </footer>
+
+</body>
+</html>
