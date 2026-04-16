@@ -32,7 +32,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **AWS-06**: Cloud Forwarding discovery-only generates correct 6-permission policy (read-only)
 - [x] **AWS-07**: Cloud Forwarding full management generates correct 12-permission policy (includes write)
 - [x] **AWS-08**: Multi-account generates trust policy template + Organizations policy + STS policy
-- [ ] **AWS-09**: Permissions are deduplicated when multiple features share the same action
+- [x] **AWS-09**: Permissions are deduplicated when multiple features share the same action
 
 ### Azure Permissions
 
@@ -125,7 +125,7 @@ Deferred to future release. Tracked but not in current roadmap.
 | AWS-06 | Phase 3 | Complete |
 | AWS-07 | Phase 3 | Complete |
 | AWS-08 | Phase 3 | Complete |
-| AWS-09 | Phase 3 | Pending |
+| AWS-09 | Phase 3 | Complete |
 | AZR-01 | Phase 4 | Pending |
 | AZR-02 | Phase 4 | Pending |
 | AZR-03 | Phase 4 | Pending |

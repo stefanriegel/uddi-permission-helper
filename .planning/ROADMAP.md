@@ -63,7 +63,7 @@ Plans:
 **Plans**: 2 plans
 Plans:
 - [x] 03-01-PLAN.md — AWS feature data module with all 6 categories (21+8+3+7+14+6+12 actions, multi-account policies, Terraform HCL, setup guides)
-- [ ] 03-02-PLAN.md — Deduplication logic and output generator functions (getAwsActions, generateAwsPolicy, generateAwsTerraform, generateAwsGuide)
+- [x] 03-02-PLAN.md — Deduplication logic and output generator functions (getAwsActions, generateAwsPolicy, generateAwsTerraform, generateAwsGuide)
 
 ### Phase 4: Azure Permission Data
 **Goal**: All five Azure feature categories produce correct built-in role assignments, custom role JSON, Terraform HCL, and setup guide text
