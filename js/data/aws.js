@@ -591,16 +591,48 @@ export function getAwsActions(selectedFeatureIds) {
 export function generateAwsPolicy(selectedFeatureIds) {
   const actions = getAwsActions(selectedFeatureIds);
 
+  // S3 bucket-level actions support resource-scoped ARNs (arn:aws:s3:::*)
+  // unlike ec2:Describe*, route53:List*, etc. which require Resource: "*"
+  const s3BucketActions = actions.filter(
+    a => a === 's3:GetBucketPolicy' || a === 's3:GetBucketPublicAccessBlock'
+  );
+  const otherActions = actions.filter(
+    a => a !== 's3:GetBucketPolicy' && a !== 's3:GetBucketPublicAccessBlock'
+  );
+
+  const statements = [];
+
+  if (otherActions.length > 0) {
+    statements.push({
+      Sid: 'InfobloxUDDIPermissions',
+      Effect: 'Allow',
+      Action: otherActions,
+      Resource: '*'
+    });
+  }
+
+  if (s3BucketActions.length > 0) {
+    statements.push({
+      Sid: 'InfobloxUDDIS3BucketAccess',
+      Effect: 'Allow',
+      Action: s3BucketActions,
+      Resource: 'arn:aws:s3:::*'
+    });
+  }
+
+  // Fallback: if no actions at all, produce an empty statement
+  if (statements.length === 0) {
+    statements.push({
+      Sid: 'InfobloxUDDIPermissions',
+      Effect: 'Allow',
+      Action: [],
+      Resource: '*'
+    });
+  }
+
   const policy = {
     Version: '2012-10-17',
-    Statement: [
-      {
-        Sid: 'InfobloxUDDIPermissions',
-        Effect: 'Allow',
-        Action: actions,
-        Resource: '*'
-      }
-    ]
+    Statement: statements
   };
 
   return JSON.stringify(policy, null, 2);
@@ -621,7 +653,40 @@ export function generateAwsTerraform(selectedFeatureIds) {
   const parts = [];
 
   if (actions.length > 0) {
-    const actionsHcl = actions.map(a => `          "${a}"`).join(',\n');
+    // Split S3 bucket-level actions (support arn:aws:s3:::*) from others (require Resource = "*")
+    const s3BucketActions = actions.filter(
+      a => a === 's3:GetBucketPolicy' || a === 's3:GetBucketPublicAccessBlock'
+    );
+    const otherActions = actions.filter(
+      a => a !== 's3:GetBucketPolicy' && a !== 's3:GetBucketPublicAccessBlock'
+    );
+
+    const statementsHcl = [];
+
+    if (otherActions.length > 0) {
+      const otherHcl = otherActions.map(a => `          "${a}"`).join(',\n');
+      statementsHcl.push(`      {
+        Sid    = "InfobloxUDDIPermissions"
+        Effect = "Allow"
+        Action = [
+${otherHcl}
+        ]
+        Resource = "*"
+      }`);
+    }
+
+    if (s3BucketActions.length > 0) {
+      const s3Hcl = s3BucketActions.map(a => `          "${a}"`).join(',\n');
+      statementsHcl.push(`      {
+        Sid    = "InfobloxUDDIS3BucketAccess"
+        Effect = "Allow"
+        Action = [
+${s3Hcl}
+        ]
+        Resource = "arn:aws:s3:::*"
+      }`);
+    }
+
     parts.push(`resource "aws_iam_policy" "infoblox_uddi_discovery" {
   name        = "InfobloxUDDI-Discovery"
   description = "Infoblox Universal DDI - Combined discovery permissions"
@@ -629,14 +694,7 @@ export function generateAwsTerraform(selectedFeatureIds) {
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
-      {
-        Sid    = "InfobloxUDDIPermissions"
-        Effect = "Allow"
-        Action = [
-${actionsHcl}
-        ]
-        Resource = "*"
-      }
+${statementsHcl.join(',\n')}
     ]
   })
 }`);
