@@ -6,6 +6,7 @@
   <title>UDDI Permission Scope Helper - Infoblox</title>
   <meta name="description" content="Generate least-privilege IAM policies for Infoblox Universal DDI cloud integrations with AWS, Azure, and GCP.">
   <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.30.0/themes/prism-tomorrow.min.css">
 </head>
 <body>
 
@@ -63,8 +64,8 @@
       </div>
       <div class="output__toolbar">
         <span class="output__badge">0 permissions</span>
-        <button class="output__action" type="button">Copy</button>
-        <button class="output__action" type="button">Download</button>
+        <button class="output__action" type="button" data-action="copy">Copy</button>
+        <button class="output__action" type="button" data-action="download">Download</button>
       </div>
       <div class="output__content">
         <div class="output__panel" role="tabpanel" id="panel-policy" aria-labelledby="tab-policy">Select a cloud provider and features to generate your permission policy.</div>
@@ -79,6 +80,10 @@
     <p>Based on Infoblox Universal DDI documentation. Not an official Infoblox product.</p>
   </footer>
 
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.30.0/prism.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.30.0/components/prism-json.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.30.0/components/prism-bash.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.30.0/components/prism-hcl.min.js"></script>
   <script type="module" src="js/app.js"></script>
 </body>
 </html>

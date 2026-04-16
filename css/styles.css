@@ -639,6 +639,40 @@ input {
   color: var(--color-output-muted);
 }
 
+/* Active badge styling */
+.output__badge--active {
+  background: var(--color-accent);
+  color: var(--color-on-brand);
+}
+
+/* Code block styling inside output panel (override Prism defaults) */
+.output__panel pre {
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  overflow-x: auto;
+}
+
+.output__panel code {
+  font-family: 'SF Mono', 'Fira Code', 'Fira Mono', Menlo, Consolas, monospace;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--color-output-text);
+  background: transparent;
+}
+
+.output__panel pre[class*="language-"],
+.output__panel code[class*="language-"] {
+  background: transparent;
+}
+
+/* Output placeholder text */
+.output__placeholder {
+  color: var(--color-output-muted);
+  text-align: center;
+  padding: var(--space-2xl) 0;
+}
+
 /* 9. Footer
    -------------------------------------------------------------------------- */
 

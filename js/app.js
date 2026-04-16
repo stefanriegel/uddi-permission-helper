@@ -5,6 +5,19 @@
 import { setActiveProvider, getActiveProvider, hasProviderData, setFeature, getFeatures, setSelectionMode, getSelectionMode } from './state.js';
 import { updateProviderCards, updateWorkspace, renderWizard, renderAdvanced } from './ui.js';
 import { getQuestionsForProvider } from './questions.js';
+import { renderOutput, updateBadge } from './output.js';
+
+/**
+ * Refresh the output panel content and badge for the current provider state.
+ */
+function refreshOutput() {
+  const providerId = getActiveProvider();
+  const features = providerId ? getFeatures(providerId) : null;
+  if (providerId && features) {
+    renderOutput(providerId, features);
+    updateBadge(providerId, features);
+  }
+}
 
 /**
  * Handle a feature answer from either wizard or advanced mode.
@@ -19,6 +32,7 @@ function handleAnswer(featureId, enabled) {
   setFeature(providerId, featureId, enabled);
   updateProviderCards(providerId, hasProviderData);
   renderCurrentMode();
+  refreshOutput();
 }
 
 /**
@@ -63,6 +77,7 @@ document.addEventListener('DOMContentLoaded', () => {
       updateProviderCards(providerId, hasProviderData);
       updateWorkspace(providerId);
       renderCurrentMode();
+      refreshOutput();
     });
   });
 
@@ -87,6 +102,7 @@ document.addEventListener('DOMContentLoaded', () => {
         content.classList.add('workspace__content--fading');
         setTimeout(() => {
           renderCurrentMode();
+          refreshOutput();
           content.classList.remove('workspace__content--fading');
         }, 200);
       }
@@ -115,4 +131,10 @@ document.addEventListener('DOMContentLoaded', () => {
       if (panel) panel.hidden = false;
     });
   });
+
+  // Set data-action attributes on Copy/Download buttons for Plan 02
+  const copyBtn = document.querySelector('.output__action:first-of-type');
+  const downloadBtn = document.querySelector('.output__action:last-of-type');
+  if (copyBtn) copyBtn.dataset.action = 'copy';
+  if (downloadBtn) downloadBtn.dataset.action = 'download';
 });
