@@ -23,15 +23,15 @@
     <section aria-label="Cloud provider selection">
       <h1 class="section-heading">Select Cloud Provider</h1>
       <nav class="providers" aria-label="Cloud provider selection">
-        <button class="provider-card provider-card--aws" type="button" aria-label="Select Amazon Web Services (AWS)">
+        <button class="provider-card provider-card--aws" type="button" data-provider="aws" aria-label="Select Amazon Web Services (AWS)" aria-pressed="false">
           <span class="provider-card__name">Amazon Web Services (AWS)</span>
           <span class="provider-card__desc">IAM policies for VPC discovery, DNS, and cloud forwarding</span>
         </button>
-        <button class="provider-card provider-card--azure" type="button" aria-label="Select Microsoft Azure">
+        <button class="provider-card provider-card--azure" type="button" data-provider="azure" aria-label="Select Microsoft Azure" aria-pressed="false">
           <span class="provider-card__name">Microsoft Azure</span>
           <span class="provider-card__desc">Role assignments for network discovery, DNS, and cloud forwarding</span>
         </button>
-        <button class="provider-card provider-card--gcp" type="button" aria-label="Select Google Cloud Platform (GCP)">
+        <button class="provider-card provider-card--gcp" type="button" data-provider="gcp" aria-label="Select Google Cloud Platform (GCP)" aria-pressed="false">
           <span class="provider-card__name">Google Cloud Platform (GCP)</span>
           <span class="provider-card__desc">IAM roles for asset discovery, DNS, and cloud forwarding</span>
         </button>
@@ -66,5 +66,6 @@
     <p>Based on Infoblox Universal DDI documentation. Not an official Infoblox product.</p>
   </footer>
 
+  <script type="module" src="js/app.js"></script>
 </body>
 </html>
