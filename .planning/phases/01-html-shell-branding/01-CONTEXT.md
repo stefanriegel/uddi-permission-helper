@@ -41,11 +41,24 @@ Deliver the Infoblox-branded static HTML shell with correct layout, responsive b
 ### Reusable Assets
 - No existing source code — greenfield project
 
-### Established Patterns
-- No patterns yet — Phase 1 establishes the foundation
+### Reference Design: UDDI-GO-Token-Calculator
+- Located at: `/Users/mustermann/Documents/coding/UDDI-GO-Token-Calculator/frontend/`
+- Uses React+Tailwind (different stack) but design language should be replicated
+- Key files for reference:
+  - `src/styles/theme.css` — color tokens (#002b49 navy, #f37021 orange, #3a8fd6 blue)
+  - `src/app/components/ui/card.tsx` — card pattern (rounded-xl, border, padding px-6)
+  - `src/app/components/ui/button.tsx` — button variants
+  - `src/app/components/ui/tabs.tsx` — tab pattern (rounded, muted bg)
+
+### Established Patterns (from Token Calculator)
+- Navy (#002b49) as primary authority color, Orange (#f37021) as accent/CTA
+- Cards: white bg, subtle navy-tinted border (rgba(0,43,73,0.12)), 12px border-radius
+- Page bg: #f5f7fa, card bg: #ffffff
+- System font stack (no external fonts)
+- Shadows: subtle, navy-tinted (rgba(0,43,73,0.08))
 
 ### Integration Points
-- UI-SPEC defines all tokens, spacing, typography, and color contracts
+- UI-SPEC defines all tokens, spacing, typography, and color contracts (updated to match Token Calculator)
 - Future phases will wire JS to the HTML shell produced here
 
 </code_context>
@@ -53,7 +66,10 @@ Deliver the Infoblox-branded static HTML shell with correct layout, responsive b
 <specifics>
 ## Specific Ideas
 
-No specific requirements beyond UI-SPEC and REQUIREMENTS. All visual contracts defined in 01-UI-SPEC.md.
+- Reuse UDDI-GO-Token-Calculator color palette and design language exactly — Navy + Orange Infoblox branding
+- Translate Token Calculator's Tailwind/React patterns to vanilla CSS custom properties
+- Output panel dark theme should use Infoblox Dark (#0a1628) not generic dark gray
+- Card border-radius 12px (rounded-xl) matching Token Calculator, not 8px
 
 </specifics>
 

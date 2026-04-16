@@ -58,22 +58,27 @@ Display is used for the page title ("UDDI Permission Scope Helper"). Heading is 
 
 ## Color
 
+> Aligned with UDDI-GO-Token-Calculator design language (Infoblox Navy + Orange accent).
+
 ### Brand Palette
 
 | Role | CSS Custom Property | Value | Usage |
 |------|---------------------|-------|-------|
 | Dominant (60%) | `--color-surface` | `#ffffff` | Page background, main content area |
-| Secondary (30%) | `--color-surface-alt` | `#f5f7fa` | Card backgrounds, section backgrounds |
-| Accent (10%) | `--color-accent` | `#0058a2` | Header background, primary CTA buttons, active tab indicator, selected card border |
-| Destructive | `--color-destructive` | `#d32f2f` | Destructive actions only (none in Phase 1) |
+| Secondary (30%) | `--color-surface-alt` | `#f5f7fa` | Page body background, section backgrounds |
+| Accent (10%) | `--color-accent` | `#f37021` | Orange highlights, CTAs, active indicators |
+| Destructive | `--color-destructive` | `#d4183d` | Destructive actions only (none in Phase 1) |
 
 ### Infoblox Branding
 
 | Token | CSS Custom Property | Value | Usage |
 |-------|---------------------|-------|-------|
-| Infoblox Blue | `--color-infoblox` | `#0058a2` | Header bar, logo area, active states |
-| Infoblox Blue Hover | `--color-infoblox-hover` | `#004a8a` | Header interactive hover state |
-| Text on Brand | `--color-on-brand` | `#ffffff` | Text rendered on Infoblox Blue surfaces |
+| Infoblox Navy | `--color-primary` | `#002b49` | Header bar, primary buttons, authority color |
+| Infoblox Navy Hover | `--color-primary-hover` | `#003d66` | Header interactive hover state |
+| Infoblox Orange | `--color-accent` | `#f37021` | Active tab indicator, selected card accent, CTA highlights |
+| Infoblox Blue | `--color-secondary` | `#3a8fd6` | Secondary info, focus ring, links |
+| Infoblox Light Blue | `--color-secondary-bg` | `#e8f0f8` | Secondary backgrounds, hover states |
+| Text on Brand | `--color-on-brand` | `#ffffff` | Text rendered on Navy surfaces |
 
 ### Provider Brand Colors
 
@@ -87,23 +92,25 @@ Display is used for the page title ("UDDI Permission Scope Helper"). Heading is 
 
 | Token | CSS Custom Property | Value | Usage |
 |-------|---------------------|-------|-------|
-| Panel BG | `--color-output-bg` | `#1e1e2e` | Output panel background |
-| Panel Surface | `--color-output-surface` | `#2a2a3c` | Tab bar background, code block background |
-| Panel Text | `--color-output-text` | `#e0e0e0` | Default text in output panel |
-| Panel Muted | `--color-output-muted` | `#888899` | Placeholder text, disabled tab labels |
-| Panel Border | `--color-output-border` | `#3a3a4c` | Dividers inside output panel |
-| Tab Active | `--color-output-tab-active` | `#0058a2` | Active tab underline (2px) |
+| Panel BG | `--color-output-bg` | `#0a1628` | Output panel background (Infoblox Dark) |
+| Panel Surface | `--color-output-surface` | `#162235` | Tab bar background, code block background |
+| Panel Text | `--color-output-text` | `#e8f0f8` | Default text in output panel |
+| Panel Muted | `--color-output-muted` | `#5a6a7e` | Placeholder text, disabled tab labels |
+| Panel Border | `--color-output-border` | `rgba(255, 255, 255, 0.1)` | Dividers inside output panel |
+| Tab Active | `--color-output-tab-active` | `#f37021` | Active tab underline (2px) — orange accent |
 
 ### Neutral Palette
 
 | Token | CSS Custom Property | Value | Usage |
 |-------|---------------------|-------|-------|
-| Text Primary | `--color-text` | `#1a1a2e` | Body text, headings |
-| Text Secondary | `--color-text-secondary` | `#555566` | Descriptions, help text |
-| Border | `--color-border` | `#d0d5dd` | Card borders, dividers |
-| Border Hover | `--color-border-hover` | `#0058a2` | Card hover/focus border |
+| Text Primary | `--color-text` | `#1a2332` | Body text, headings |
+| Text Secondary | `--color-text-secondary` | `#5a6a7e` | Descriptions, help text |
+| Border | `--color-border` | `rgba(0, 43, 73, 0.12)` | Card borders, dividers (subtle navy) |
+| Border Hover | `--color-border-hover` | `#002b49` | Card hover/focus border |
+| Input BG | `--color-input-bg` | `#f3f5f8` | Input field backgrounds |
+| Focus Ring | `--color-ring` | `#3a8fd6` | Focus outline (blue) |
 
-Accent reserved for: header background, active tab indicator, selected provider card border, primary action buttons (Copy, Download), badge background.
+Accent reserved for: active tab indicator, selected provider card accent, CTA highlights, badge backgrounds. Header uses Navy (primary), not accent.
 
 ---
 
@@ -113,19 +120,20 @@ These are the HTML/CSS components delivered in this phase. All are static chrome
 
 ### 1. Header Bar
 
-- Full-width bar, background `--color-infoblox`, height 56px
-- Left-aligned: Infoblox logo (SVG, 32px height, white) + product name "UDDI Permission Scope Helper" in `--text-label` at `#ffffff`
+- Full-width bar, background `--color-primary` (Navy #002b49), height 56px
+- Left-aligned: Infoblox logo (SVG, 32px height, white) + product name "UDDI Permission Scope Helper" in `--text-label` at `--color-on-brand`
 - No navigation links in Phase 1
+- Matches Token Calculator header pattern
 
 ### 2. Provider Card (x3)
 
 - Arranged in a horizontal row with `--space-lg` (24px) gap
-- Each card: white background (`#ffffff`), 1px border `--color-border`, border-radius 8px
+- Each card: white background (`#ffffff`), 1px border `--color-border`, border-radius 12px (rounded-xl, matching Token Calculator)
 - Top border: 4px solid in provider color (`--color-aws` / `--color-azure` / `--color-gcp`)
-- Card padding: `--space-md` (16px)
+- Card padding: `--space-lg` (24px) — matches Token Calculator card padding
 - Content: provider name in `--text-label`, brief description in `--text-body` at `--color-text-secondary`
 - Provider names: "Amazon Web Services (AWS)", "Microsoft Azure", "Google Cloud Platform (GCP)"
-- Hover state: border transitions to `--color-border-hover`, box-shadow `0 2px 8px rgba(0, 0, 0, 0.1)`
+- Hover state: border transitions to `--color-border-hover`, box-shadow `0 2px 8px rgba(0, 43, 73, 0.08)`
 - Cards are `<button>` elements for keyboard accessibility
 - Min-height: 120px; equal-height via CSS Grid or Flexbox
 
@@ -133,23 +141,23 @@ These are the HTML/CSS components delivered in this phase. All are static chrome
 
 - Below provider cards, full width
 - Visible but displays empty state (see Copywriting Contract)
-- Light background `--color-surface-alt`, border-radius 8px, border 1px `--color-border`
+- White background `#ffffff`, border-radius 12px, border 1px `--color-border`
 - Min-height: 200px
 - Padding: `--space-lg` (24px)
 
 ### 4. Output Panel
 
 - Below workspace panel, full width
-- Dark theme: background `--color-output-bg`, border-radius 8px
+- Dark theme: background `--color-output-bg` (Infoblox Dark #0a1628), border-radius 12px
 - Min-height: 300px
 - **Tab bar**: horizontal row at top, background `--color-output-surface`
   - Three tabs: "Policy", "Terraform", "Setup Guide"
   - Tab labels in `--text-label` at `--color-output-muted`
-  - First tab ("Policy") shows active state: text `--color-output-text`, 2px bottom border `--color-output-tab-active`
+  - First tab ("Policy") shows active state: text `--color-output-text`, 2px bottom border `--color-output-tab-active` (orange)
   - Tab bar height: 44px (meets touch target)
 - **Action buttons row**: right-aligned below tab bar
   - "Copy" button and "Download" button, both in `--text-label`
-  - Button style: ghost on dark -- transparent background, `--color-output-text` text, 1px border `--color-output-border`, border-radius 4px, padding 8px 16px
+  - Button style: ghost on dark -- transparent background, `--color-output-text` text, 1px border `--color-output-border`, border-radius 8px, padding 8px 16px
   - Hover: background `--color-output-surface`
 - **Badge placeholder**: left-aligned next to action buttons
   - Shows "0 permissions" in `--text-label` at `--color-output-muted`
@@ -160,7 +168,7 @@ These are the HTML/CSS components delivered in this phase. All are static chrome
 ### 5. Footer
 
 - Full width, padding `--space-md` (16px) vertical
-- Text in `--text-body` size 14px at `--color-text-secondary`, centered
+- Text in `--text-label` (14px) at `--color-text-secondary`, centered
 - Copy: "Based on Infoblox Universal DDI documentation. Not an official Infoblox product."
 
 ---
@@ -247,7 +255,7 @@ No destructive actions exist in Phase 1. No error states exist in Phase 1 (stati
 | Tab bar | `role="tablist"` with `role="tab"` on each tab, `aria-selected` on active tab |
 | Tab panel | `role="tabpanel"` with `aria-labelledby` referencing the active tab |
 | Color contrast | All text meets WCAG 2.1 AA (4.5:1 for body, 3:1 for large text) |
-| Focus indicators | 2px outline `--color-infoblox` with 2px offset on all interactive elements |
+| Focus indicators | 3px outline `--color-ring` (#3a8fd6) with 2px offset on all interactive elements |
 | Skip link | Hidden "Skip to main content" link visible on focus, targets main content area |
 | Landmark regions | `<header>`, `<main>`, `<footer>` semantic elements |
 | Language | `<html lang="en">` |
@@ -258,7 +266,7 @@ No destructive actions exist in Phase 1. No error states exist in Phase 1 (stati
 
 All styles in a single `styles.css` file using CSS custom properties for tokens.
 
-```
+```css
 :root {
   /* Spacing */
   --space-xs: 4px;
@@ -278,7 +286,40 @@ All styles in a single `styles.css` file using CSS custom properties for tokens.
   --weight-regular: 400;
   --weight-semibold: 600;
 
-  /* Colors (all tokens listed in Color section above) */
+  /* Border Radius (Token Calculator uses rounded-xl = 12px) */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+
+  /* Colors — aligned with UDDI-GO-Token-Calculator */
+  --color-primary: #002b49;
+  --color-primary-hover: #003d66;
+  --color-accent: #f37021;
+  --color-secondary: #3a8fd6;
+  --color-secondary-bg: #e8f0f8;
+  --color-surface: #ffffff;
+  --color-surface-alt: #f5f7fa;
+  --color-on-brand: #ffffff;
+  --color-text: #1a2332;
+  --color-text-secondary: #5a6a7e;
+  --color-border: rgba(0, 43, 73, 0.12);
+  --color-border-hover: #002b49;
+  --color-input-bg: #f3f5f8;
+  --color-ring: #3a8fd6;
+  --color-destructive: #d4183d;
+
+  /* Provider colors */
+  --color-aws: #ff9900;
+  --color-azure: #0078d4;
+  --color-gcp: #4285f4;
+
+  /* Output panel (dark, navy-based) */
+  --color-output-bg: #0a1628;
+  --color-output-surface: #162235;
+  --color-output-text: #e8f0f8;
+  --color-output-muted: #5a6a7e;
+  --color-output-border: rgba(255, 255, 255, 0.1);
+  --color-output-tab-active: #f37021;
 }
 ```
 
