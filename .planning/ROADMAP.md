@@ -62,7 +62,7 @@ Plans:
   5. Selecting VPC/IPAM and DNS bidirectional together produces no duplicate ec2 actions
 **Plans**: 2 plans
 Plans:
-- [ ] 03-01-PLAN.md — AWS feature data module with all 6 categories (21+8+3+7+14+6+12 actions, multi-account policies, Terraform HCL, setup guides)
+- [x] 03-01-PLAN.md — AWS feature data module with all 6 categories (21+8+3+7+14+6+12 actions, multi-account policies, Terraform HCL, setup guides)
 - [ ] 03-02-PLAN.md — Deduplication logic and output generator functions (getAwsActions, generateAwsPolicy, generateAwsTerraform, generateAwsGuide)
 
 ### Phase 4: Azure Permission Data

@@ -24,14 +24,14 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### AWS Permissions
 
-- [ ] **AWS-01**: VPC/IPAM Discovery generates correct 21-permission policy
-- [ ] **AWS-02**: EC2 & Networking generates correct 8-permission policy
-- [ ] **AWS-03**: S3 Bucket Visibility generates correct 3-permission policy
-- [ ] **AWS-04**: DNS (Route 53) read-only generates correct 7-permission policy
-- [ ] **AWS-05**: DNS (Route 53) bidirectional generates correct 14-permission policy
-- [ ] **AWS-06**: Cloud Forwarding discovery-only generates correct 6-permission policy (read-only)
-- [ ] **AWS-07**: Cloud Forwarding full management generates correct 12-permission policy (includes write)
-- [ ] **AWS-08**: Multi-account generates trust policy template + Organizations policy + STS policy
+- [x] **AWS-01**: VPC/IPAM Discovery generates correct 21-permission policy
+- [x] **AWS-02**: EC2 & Networking generates correct 8-permission policy
+- [x] **AWS-03**: S3 Bucket Visibility generates correct 3-permission policy
+- [x] **AWS-04**: DNS (Route 53) read-only generates correct 7-permission policy
+- [x] **AWS-05**: DNS (Route 53) bidirectional generates correct 14-permission policy
+- [x] **AWS-06**: Cloud Forwarding discovery-only generates correct 6-permission policy (read-only)
+- [x] **AWS-07**: Cloud Forwarding full management generates correct 12-permission policy (includes write)
+- [x] **AWS-08**: Multi-account generates trust policy template + Organizations policy + STS policy
 - [ ] **AWS-09**: Permissions are deduplicated when multiple features share the same action
 
 ### Azure Permissions
@@ -117,14 +117,14 @@ Deferred to future release. Tracked but not in current roadmap.
 | PROV-01 | Phase 2 | Complete |
 | PROV-02 | Phase 2 | Complete |
 | PROV-03 | Phase 2 | Complete |
-| AWS-01 | Phase 3 | Pending |
-| AWS-02 | Phase 3 | Pending |
-| AWS-03 | Phase 3 | Pending |
-| AWS-04 | Phase 3 | Pending |
-| AWS-05 | Phase 3 | Pending |
-| AWS-06 | Phase 3 | Pending |
-| AWS-07 | Phase 3 | Pending |
-| AWS-08 | Phase 3 | Pending |
+| AWS-01 | Phase 3 | Complete |
+| AWS-02 | Phase 3 | Complete |
+| AWS-03 | Phase 3 | Complete |
+| AWS-04 | Phase 3 | Complete |
+| AWS-05 | Phase 3 | Complete |
+| AWS-06 | Phase 3 | Complete |
+| AWS-07 | Phase 3 | Complete |
+| AWS-08 | Phase 3 | Complete |
 | AWS-09 | Phase 3 | Pending |
 | AZR-01 | Phase 4 | Pending |
 | AZR-02 | Phase 4 | Pending |
