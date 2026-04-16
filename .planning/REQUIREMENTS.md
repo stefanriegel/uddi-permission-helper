@@ -36,13 +36,13 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Azure Permissions
 
-- [ ] **AZR-01**: IPAM/Asset Discovery outputs Reader role assignment at subscription scope
-- [ ] **AZR-02**: Public DNS read-only is covered by Reader role (no additional assignment)
-- [ ] **AZR-03**: Public DNS read-write outputs DNS Zone Contributor assignment
-- [ ] **AZR-04**: Private DNS outputs Private DNS Zone Contributor assignment
-- [ ] **AZR-05**: Cloud Forwarding discovery outputs custom role with 6 read-only permissions
-- [ ] **AZR-06**: Cloud Forwarding management outputs custom role with 21 permissions
-- [ ] **AZR-07**: Multi-subscription outputs guidance for management group scope assignment
+- [x] **AZR-01**: IPAM/Asset Discovery outputs Reader role assignment at subscription scope
+- [x] **AZR-02**: Public DNS read-only is covered by Reader role (no additional assignment)
+- [x] **AZR-03**: Public DNS read-write outputs DNS Zone Contributor assignment
+- [x] **AZR-04**: Private DNS outputs Private DNS Zone Contributor assignment
+- [x] **AZR-05**: Cloud Forwarding discovery outputs custom role with 6 read-only permissions
+- [x] **AZR-06**: Cloud Forwarding management outputs custom role with 21 permissions
+- [x] **AZR-07**: Multi-subscription outputs guidance for management group scope assignment
 
 ### GCP Permissions
 
@@ -126,13 +126,13 @@ Deferred to future release. Tracked but not in current roadmap.
 | AWS-07 | Phase 3 | Complete |
 | AWS-08 | Phase 3 | Complete |
 | AWS-09 | Phase 3 | Complete |
-| AZR-01 | Phase 4 | Pending |
-| AZR-02 | Phase 4 | Pending |
-| AZR-03 | Phase 4 | Pending |
-| AZR-04 | Phase 4 | Pending |
-| AZR-05 | Phase 4 | Pending |
-| AZR-06 | Phase 4 | Pending |
-| AZR-07 | Phase 4 | Pending |
+| AZR-01 | Phase 4 | Complete |
+| AZR-02 | Phase 4 | Complete |
+| AZR-03 | Phase 4 | Complete |
+| AZR-04 | Phase 4 | Complete |
+| AZR-05 | Phase 4 | Complete |
+| AZR-06 | Phase 4 | Complete |
+| AZR-07 | Phase 4 | Complete |
 | GCP-01 | Phase 5 | Pending |
 | GCP-02 | Phase 5 | Pending |
 | GCP-03 | Phase 5 | Pending |

@@ -76,7 +76,7 @@ Plans:
   4. Multi-subscription outputs management group scope guidance
 **Plans**: 2 plans
 Plans:
-- [ ] 04-01-PLAN.md — Azure feature data module with all 5 categories (Reader, DNS Zone Contributor, Private DNS Zone Contributor roles + custom roles with 6/21 permissions)
+- [x] 04-01-PLAN.md — Azure feature data module with all 5 categories (Reader, DNS Zone Contributor, Private DNS Zone Contributor roles + custom roles with 6/21 permissions)
 - [ ] 04-02-PLAN.md — Role deduplication and output generator functions (getAzureRoles, generateAzurePolicy, generateAzureTerraform, generateAzureGuide) with TDD
 
 ### Phase 5: GCP Permission Data
