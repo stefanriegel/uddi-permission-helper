@@ -87,5 +87,25 @@
   <script src="https://cdn.jsdelivr.net/npm/prismjs@1.30.0/components/prism-bash.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/prismjs@1.30.0/components/prism-hcl.min.js"></script>
   <script type="module" src="js/app.js"></script>
+  <script>
+    // Detect file:// protocol — ES modules are blocked by CORS on file:// URLs.
+    // This classic script runs regardless of protocol and shows a helpful warning.
+    (function () {
+      if (window.location.protocol === 'file:') {
+        document.addEventListener('DOMContentLoaded', function () {
+          var banner = document.createElement('div');
+          banner.className = 'file-protocol-warning';
+          banner.innerHTML =
+            '<strong>Local server required.</strong> ' +
+            'This page uses ES modules which browsers block when opened via <code>file://</code>. ' +
+            'Start a local server instead:<br><br>' +
+            '<code>python3 -m http.server 8000</code><br>' +
+            'Then open <a href="http://localhost:8000">http://localhost:8000</a>';
+          var main = document.querySelector('.main');
+          if (main) main.prepend(banner);
+        });
+      }
+    })();
+  </script>
 </body>
 </html>
