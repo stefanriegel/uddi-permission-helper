@@ -52,7 +52,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **GCP-04**: DNS read-write outputs dns.admin predefined role
 - [x] **GCP-05**: Cloud Forwarding inbound outputs 10 custom permissions
 - [x] **GCP-06**: Cloud Forwarding outbound outputs 15 custom permissions
-- [x] **GCP-07**: Cloud Forwarding both outputs combined 21 custom permissions
+- [x] **GCP-07**: Cloud Forwarding both outputs combined 22 custom permissions
 - [x] **GCP-08**: Internal Ranges outputs 13 networkconnectivity permissions
 - [x] **GCP-09**: Multi-project/org outputs organizationViewer + folderViewer roles + 5 resourcemanager permissions
 
