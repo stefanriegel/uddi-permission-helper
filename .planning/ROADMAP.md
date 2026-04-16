@@ -92,7 +92,7 @@ Plans:
 **Plans**: 2 plans
 Plans:
 - [x] 05-01-PLAN.md — GCP feature data module with all 8 categories (predefined roles + custom permissions, Terraform HCL, setup guides)
-- [ ] 05-02-PLAN.md — Permission deduplication and output generator functions (getGcpRoles, getGcpCustomPermissions, generateGcpPolicy, generateGcpTerraform, generateGcpGuide) with TDD
+- [x] 05-02-PLAN.md — Permission deduplication and output generator functions (getGcpRoles, getGcpCustomPermissions, generateGcpPolicy, generateGcpTerraform, generateGcpGuide) with TDD
 
 ### Phase 6: Feature Selection Wizard
 **Goal**: Customer can answer sequential yes/no questions to scope features, or switch to direct checkboxes — state is preserved when switching modes
