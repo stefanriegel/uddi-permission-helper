@@ -12,7 +12,7 @@ Customer can generate a minimal, security-team-approved permission policy in und
 
 ### Validated
 
-(None yet — ship to validate)
+- [x] Infoblox-branded design — Validated in Phase 1: HTML Shell + Branding
 
 ### Active
 
@@ -28,7 +28,6 @@ Customer can generate a minimal, security-team-approved permission policy in und
 - [ ] Permission count badge shows total permissions granted
 - [ ] Multi-account/subscription/project scenarios supported
 - [ ] Site works offline after first load (pure static, no backend)
-- [ ] Infoblox-branded design
 
 ### Out of Scope
 
@@ -62,8 +61,9 @@ Customer can generate a minimal, security-team-approved permission policy in und
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| Pure static site (no framework) | Zero dependencies, instant deploy, no build step, works offline | — Pending |
-| Single-page layout with wizard + live output | Simplest UX, single URL to share, minimal JS complexity | — Pending |
+| Pure static site (no framework) | Zero dependencies, instant deploy, no build step, works offline | ✓ Phase 1 |
+| Single-page layout with wizard + live output | Simplest UX, single URL to share, minimal JS complexity | ✓ Phase 1 |
+| Token Calculator design language | Reuse Navy #002b49 + Orange #f37021 from UDDI-GO-Token-Calculator | ✓ Phase 1 |
 | Wizard + Advanced mode dual UI | Wizard for newcomers, checkboxes for power users who know what they need | — Pending |
 | Hardcoded permission data | Permissions rarely change, simpler than external config, update via redeploy | — Pending |
 | Three output formats (native/Terraform/guide) | Covers console users, IaC users, and setup walkthroughs | — Pending |
@@ -86,4 +86,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-16 after initialization*
+*Last updated: 2026-04-16 after Phase 1 completion*
