@@ -103,9 +103,10 @@ Plans:
   2. A DNS sub-question (read-only vs. bidirectional) appears only after the parent DNS question is answered Yes
   3. Switching to Advanced mode shows feature checkboxes with per-category permission counts
   4. Switching back to Wizard mode reflects the same feature selections that were set in Advanced mode
-**Plans**: 1 plan
+**Plans**: 2 plans
 Plans:
-- [ ] 01-01-PLAN.md — Infoblox-branded HTML/CSS shell with design tokens, semantic HTML, and responsive layout
+- [ ] 06-01-PLAN.md — Question engine, state extensions, and wizard mode UI with sequential question cards and sub-question reveal
+- [ ] 06-02-PLAN.md — Advanced mode checkbox UI with permission counts, mode toggle wiring, and crossfade animation
 **UI hint**: yes
 
 ### Phase 7: Output Engine + Utilities
@@ -149,6 +150,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 | 3. AWS Permission Data | 0/2 | Not started | - |
 | 4. Azure Permission Data | 0/2 | Not started | - |
 | 5. GCP Permission Data | 0/2 | Not started | - |
-| 6. Feature Selection Wizard | 0/? | Not started | - |
+| 6. Feature Selection Wizard | 0/2 | Not started | - |
 | 7. Output Engine + Utilities | 0/? | Not started | - |
 | 8. Hardening + Deploy | 0/? | Not started | - |
