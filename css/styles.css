@@ -513,6 +513,27 @@ input {
   outline-offset: 2px;
 }
 
+/* 7d. Advanced Mode Checkboxes
+   -------------------------------------------------------------------------- */
+
+/* Advanced mode category groups */
+.advanced__category { margin-bottom: var(--space-lg); }
+.advanced__category-title { font-size: var(--text-label); font-weight: var(--weight-semibold); color: var(--color-text); margin: 0 0 var(--space-sm) 0; text-transform: uppercase; letter-spacing: 0.05em; }
+
+/* Checkbox/radio rows */
+.advanced__row { display: flex; align-items: center; gap: var(--space-sm); padding: var(--space-sm) var(--space-md); border-radius: var(--radius-md); cursor: pointer; transition: background 150ms ease; }
+.advanced__row:hover { background: var(--color-surface-alt); }
+.advanced__row--sub { margin-left: var(--space-xl); }
+
+/* Custom checkbox styling */
+.advanced__input { width: 18px; height: 18px; accent-color: var(--color-secondary); cursor: pointer; flex-shrink: 0; }
+
+/* Feature label */
+.advanced__label { font-size: var(--text-body); color: var(--color-text); flex: 1; cursor: pointer; }
+
+/* Permission count badge */
+.advanced__badge { font-size: var(--text-label); color: var(--color-text-secondary); background: var(--color-surface-alt); padding: 2px 10px; border-radius: 10px; white-space: nowrap; }
+
 /* 8. Output Panel
    -------------------------------------------------------------------------- */
 

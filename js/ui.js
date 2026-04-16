@@ -1,7 +1,11 @@
 /**
- * DOM manipulation for provider card selection, workspace updates, and wizard rendering.
+ * DOM manipulation for provider card selection, workspace updates, wizard and advanced rendering.
  * Receives data as arguments — no direct dependency on state.js.
  */
+
+import { AWS_FEATURES } from './data/aws.js';
+import { AZURE_FEATURES } from './data/azure.js';
+import { GCP_FEATURES } from './data/gcp.js';
 
 const PROVIDER_NAMES = {
   aws: 'Amazon Web Services (AWS)',
@@ -293,4 +297,161 @@ function escapeHtml(str) {
   const div = document.createElement('div');
   div.textContent = str;
   return div.innerHTML;
+}
+
+// ---------------------------------------------------------------------------
+// Permission count helpers
+// ---------------------------------------------------------------------------
+
+const PROVIDER_FEATURES_MAP = {
+  aws: AWS_FEATURES,
+  azure: AZURE_FEATURES,
+  gcp: GCP_FEATURES
+};
+
+/**
+ * Get a human-readable permission count string for a feature.
+ *
+ * @param {string} providerId - 'aws', 'azure', or 'gcp'.
+ * @param {string} featureId - Feature key from the provider's FEATURES object.
+ * @returns {string} Display string like "21 actions", "3 roles", "10 permissions".
+ */
+function getPermissionCount(providerId, featureId) {
+  const features = PROVIDER_FEATURES_MAP[providerId];
+  if (!features) return '';
+  const feature = features[featureId];
+  if (!feature) return '';
+
+  if (providerId === 'aws') {
+    if (feature.actions && feature.actions.length > 0) {
+      return `${feature.actions.length} actions`;
+    }
+    if (feature.policies && feature.policies.length > 0) {
+      return `${feature.policies.length} policies`;
+    }
+    return '0 actions';
+  }
+
+  if (providerId === 'azure') {
+    const roleCount = feature.roles ? feature.roles.length : 0;
+    const customPermCount = feature.customRole ? feature.customRole.permissions.length : 0;
+    const parts = [];
+    if (roleCount > 0) parts.push(`${roleCount} role${roleCount !== 1 ? 's' : ''}`);
+    if (customPermCount > 0) parts.push(`${customPermCount} permissions`);
+    if (feature.guidance) parts.push('guidance');
+    return parts.join(' + ') || '0 roles';
+  }
+
+  if (providerId === 'gcp') {
+    const roleCount = feature.predefinedRoles ? feature.predefinedRoles.length : 0;
+    const permCount = feature.customPermissions ? feature.customPermissions.length : 0;
+    const parts = [];
+    if (roleCount > 0) parts.push(`${roleCount} role${roleCount !== 1 ? 's' : ''}`);
+    if (permCount > 0) parts.push(`${permCount} permissions`);
+    return parts.join(' + ') || '0 permissions';
+  }
+
+  return '';
+}
+
+// ---------------------------------------------------------------------------
+// Advanced mode rendering
+// ---------------------------------------------------------------------------
+
+/**
+ * Render the advanced mode into #workspace-content.
+ *
+ * Shows all features as checkboxes grouped by category with permission count badges.
+ * Exclusive sub-features (DNS) render as radio inputs; non-exclusive (GCP Cloud Forwarding)
+ * render as independent checkboxes.
+ *
+ * @param {Array} questions - Question array from getQuestionsForProvider.
+ * @param {object} features - Current features object from state.
+ * @param {function} onToggle - Callback: (featureId, enabled) => void.
+ */
+export function renderAdvanced(questions, features, onToggle) {
+  const container = document.getElementById('workspace-content');
+  if (!container) return;
+
+  // Derive the providerId from the first question's id prefix
+  const providerId = questions.length > 0 ? questions[0].id.split('-')[0] : 'aws';
+
+  const parts = [];
+
+  for (const q of questions) {
+    parts.push('<div class="advanced__category">');
+    parts.push(`<h3 class="advanced__category-title">${escapeHtml(q.text)}</h3>`);
+
+    if (q.subQuestions && q.subQuestions.length > 0) {
+      // Parent question with sub-features
+      const radioName = `advanced-radio-${q.id}`;
+
+      for (const sub of q.subQuestions) {
+        const isChecked = features[sub.featureId] === true;
+        const inputType = sub.exclusive ? 'radio' : 'checkbox';
+        const nameAttr = sub.exclusive ? ` name="${radioName}"` : '';
+        const checkedAttr = isChecked ? ' checked' : '';
+        const badge = getPermissionCount(providerId, sub.featureId);
+        const inputId = `advanced-${sub.featureId}`;
+
+        parts.push(`<label class="advanced__row advanced__row--sub">`);
+        parts.push(`<input type="${inputType}" class="advanced__input" id="${inputId}"${nameAttr}${checkedAttr} data-feature-id="${sub.featureId}" data-exclusive="${sub.exclusive}" data-parent-question="${q.id}">`);
+        parts.push(`<span class="advanced__label">${escapeHtml(sub.text)}</span>`);
+        if (badge) {
+          parts.push(`<span class="advanced__badge">${badge}</span>`);
+        }
+        parts.push('</label>');
+      }
+    } else {
+      // Standalone feature
+      const featureId = q.featureIds[0];
+      const isChecked = features[featureId] === true;
+      const checkedAttr = isChecked ? ' checked' : '';
+      const badge = getPermissionCount(providerId, featureId);
+      const featureData = PROVIDER_FEATURES_MAP[providerId]?.[featureId];
+      const displayName = featureData?.name || q.text;
+      const inputId = `advanced-${featureId}`;
+
+      parts.push(`<label class="advanced__row">`);
+      parts.push(`<input type="checkbox" class="advanced__input" id="${inputId}"${checkedAttr} data-feature-id="${featureId}">`);
+      parts.push(`<span class="advanced__label">${escapeHtml(displayName)}</span>`);
+      if (badge) {
+        parts.push(`<span class="advanced__badge">${badge}</span>`);
+      }
+      parts.push('</label>');
+    }
+
+    parts.push('</div>');
+  }
+
+  container.innerHTML = parts.join('\n');
+
+  // Wire event listeners
+  wireAdvancedEvents(container, questions, features, onToggle);
+}
+
+/**
+ * Wire change handlers for advanced mode inputs.
+ */
+function wireAdvancedEvents(container, questions, features, onToggle) {
+  container.querySelectorAll('.advanced__input').forEach(input => {
+    input.addEventListener('change', () => {
+      const featureId = input.dataset.featureId;
+      const exclusive = input.dataset.exclusive === 'true';
+      const parentQuestionId = input.dataset.parentQuestion;
+
+      if (exclusive && parentQuestionId) {
+        // Radio-style: select this one, deselect siblings
+        const question = questions.find(q => q.id === parentQuestionId);
+        if (question && question.subQuestions) {
+          for (const sub of question.subQuestions) {
+            onToggle(sub.featureId, sub.featureId === featureId);
+          }
+        }
+      } else {
+        // Checkbox toggle
+        onToggle(featureId, input.checked);
+      }
+    });
+  });
 }
