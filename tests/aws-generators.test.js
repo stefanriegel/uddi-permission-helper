@@ -76,6 +76,7 @@ describe('generateAwsPolicy', () => {
     const parsed = JSON.parse(json);
     assert.equal(parsed.Version, '2012-10-17');
     assert.ok(Array.isArray(parsed.Statement), 'Statement should be an array');
+    assert.equal(parsed.Statement.length, 1, 'non-S3 features produce single statement');
     assert.equal(parsed.Statement[0].Effect, 'Allow');
     assert.equal(parsed.Statement[0].Action.length, 21);
     assert.equal(parsed.Statement[0].Resource, '*');
@@ -90,6 +91,7 @@ describe('generateAwsPolicy', () => {
   it('deduplicates actions in policy output', () => {
     const json = generateAwsPolicy(['vpcIpamDiscovery', 'dnsRoute53Bidirectional']);
     const parsed = JSON.parse(json);
+    assert.equal(parsed.Statement.length, 1, 'no S3 features means single statement');
     assert.equal(parsed.Statement[0].Action.length, 35);
   });
 
@@ -97,6 +99,43 @@ describe('generateAwsPolicy', () => {
     const json = generateAwsPolicy([]);
     const parsed = JSON.parse(json);
     assert.equal(parsed.Statement[0].Action.length, 0);
+  });
+
+  it('produces single statement for non-S3 features', () => {
+    const json = generateAwsPolicy(['vpcIpamDiscovery']);
+    const parsed = JSON.parse(json);
+    assert.equal(parsed.Statement.length, 1);
+    assert.equal(parsed.Statement[0].Resource, '*');
+    assert.equal(parsed.Statement[0].Sid, 'InfobloxUDDIPermissions');
+  });
+
+  it('splits S3 Get actions into separate statement with bucket ARN', () => {
+    const json = generateAwsPolicy(['s3BucketVisibility']);
+    const parsed = JSON.parse(json);
+    assert.equal(parsed.Statement.length, 2, 'S3 feature produces two statements');
+
+    // First statement: s3:ListAllMyBuckets with Resource "*"
+    assert.ok(parsed.Statement[0].Action.includes('s3:ListAllMyBuckets'),
+      'first statement should include s3:ListAllMyBuckets');
+    assert.ok(!parsed.Statement[0].Action.includes('s3:GetBucketPolicy'),
+      'first statement should not include s3:GetBucketPolicy');
+    assert.equal(parsed.Statement[0].Resource, '*');
+
+    // Second statement: S3 Get actions with bucket-level ARN
+    assert.ok(parsed.Statement[1].Action.includes('s3:GetBucketPolicy'),
+      'second statement should include s3:GetBucketPolicy');
+    assert.ok(parsed.Statement[1].Action.includes('s3:GetBucketPublicAccessBlock'),
+      'second statement should include s3:GetBucketPublicAccessBlock');
+    assert.equal(parsed.Statement[1].Resource, 'arn:aws:s3:::*');
+    assert.equal(parsed.Statement[1].Sid, 'InfobloxUDDIS3BucketAccess');
+  });
+
+  it('mixed features with S3 produce two statements', () => {
+    const json = generateAwsPolicy(['vpcIpamDiscovery', 's3BucketVisibility']);
+    const parsed = JSON.parse(json);
+    assert.equal(parsed.Statement.length, 2, 'mixed features with S3 produce two statements');
+    assert.equal(parsed.Statement[0].Resource, '*');
+    assert.equal(parsed.Statement[1].Resource, 'arn:aws:s3:::*');
   });
 });
 
@@ -123,6 +162,13 @@ describe('generateAwsTerraform', () => {
     const tf = generateAwsTerraform(['vpcIpamDiscovery', 'multiAccount']);
     assert.ok(tf.includes('resource "aws_iam_policy"'), 'should have policy');
     assert.ok(tf.includes('aws_iam_role'), 'should have role');
+  });
+
+  it('produces split Resource blocks when S3 features included', () => {
+    const tf = generateAwsTerraform(['s3BucketVisibility']);
+    assert.ok(tf.includes('arn:aws:s3:::*'), 'should contain S3 bucket ARN');
+    assert.ok(tf.includes('InfobloxUDDIS3BucketAccess'), 'should contain S3 bucket Sid');
+    assert.ok(tf.includes('Resource = "*"'), 'should still have wildcard Resource for non-S3 actions');
   });
 });
 
