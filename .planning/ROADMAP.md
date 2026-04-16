@@ -47,7 +47,7 @@ Plans:
   3. Switching from AWS to Azure does not clear answers previously entered for AWS
 **Plans**: 1 plan
 Plans:
-- [ ] 01-01-PLAN.md — Infoblox-branded HTML/CSS shell with design tokens, semantic HTML, and responsive layout
+- [ ] 02-01-PLAN.md — Provider card selection with state management, workspace reveal, and per-provider state preservation
 **UI hint**: yes
 
 ### Phase 3: AWS Permission Data
