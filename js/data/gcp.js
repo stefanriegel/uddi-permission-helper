@@ -1,24 +1,21 @@
 /**
  * GCP permission data for UDDI Permission Scope Helper.
  *
- * Eight feature categories with predefined role bindings and/or custom
- * permission lists, Terraform HCL templates, setup guides, and per-role/
- * permission rationale strings. All data sourced from the Infoblox
- * Universal DDI Admin Guide.
+ * Eight feature categories with custom permission lists, Terraform HCL
+ * templates, setup guides, and per-permission rationale strings. All data
+ * sourced from the Infoblox Universal DDI Admin Guide.
  *
- * GCP uses a hybrid model: predefined roles (like Azure built-in roles)
- * plus custom permissions (like AWS IAM actions). Some features use only
- * predefined roles, some use only custom permissions, and some use both.
+ * GCP uses custom roles with granular permissions for least-privilege
+ * access. The sole exception is multiProjectOrg, which requires
+ * predefined roles (organizationViewer, folderViewer) at org/folder
+ * scope where custom project-level roles cannot reach.
  */
 
 const assetDiscovery = {
   id: 'assetDiscovery',
   name: 'Asset Discovery',
   question: 'Discover VMs, disks, networking resources?',
-  predefinedRoles: [
-    { role: 'roles/compute.viewer', scope: 'project' },
-    { role: 'roles/compute.networkViewer', scope: 'project' }
-  ],
+  predefinedRoles: [],
   customPermissions: [
     'compute.instances.list',
     'compute.instances.get',
@@ -47,8 +44,6 @@ const assetDiscovery = {
     'compute.projects.get'
   ],
   rationale: {
-    'roles/compute.viewer': 'Read-only access to Compute Engine resources for VM and disk inventory',
-    'roles/compute.networkViewer': 'Read-only access to networking resources for topology discovery',
     'compute.instances.list': 'Enumerate VM instances for asset inventory',
     'compute.instances.get': 'Retrieve VM instance details and metadata',
     'compute.disks.list': 'Enumerate persistent disks across the project',
@@ -75,33 +70,76 @@ const assetDiscovery = {
     'compute.regions.list': 'Enumerate available regions for multi-region discovery',
     'compute.projects.get': 'Retrieve project-level compute quotas and metadata'
   },
-  terraform: `resource "google_project_iam_member" "infoblox_uddi_compute_viewer" {
-  project = var.project_id
-  role    = "roles/compute.viewer"
-  member  = "serviceAccount:\${var.service_account_email}"
+  terraform: `resource "google_project_iam_custom_role" "infoblox_uddi_asset_discovery" {
+  project     = var.project_id
+  role_id     = "infobloxUddiAssetDiscovery"
+  title       = "Infoblox UDDI - Asset Discovery"
+  description = "Infoblox Universal DDI - Compute and network asset discovery permissions"
+  permissions = [
+    "compute.instances.list",
+    "compute.instances.get",
+    "compute.disks.list",
+    "compute.disks.get",
+    "compute.networks.list",
+    "compute.networks.get",
+    "compute.subnetworks.list",
+    "compute.subnetworks.get",
+    "compute.addresses.list",
+    "compute.addresses.get",
+    "compute.firewalls.list",
+    "compute.firewalls.get",
+    "compute.routes.list",
+    "compute.routes.get",
+    "compute.routers.list",
+    "compute.routers.get",
+    "compute.forwardingRules.list",
+    "compute.forwardingRules.get",
+    "compute.globalAddresses.list",
+    "compute.globalAddresses.get",
+    "compute.globalForwardingRules.list",
+    "compute.globalForwardingRules.get",
+    "compute.zones.list",
+    "compute.regions.list",
+    "compute.projects.get"
+  ]
 }
 
-resource "google_project_iam_member" "infoblox_uddi_network_viewer" {
+resource "google_project_iam_member" "infoblox_uddi_asset_discovery" {
   project = var.project_id
-  role    = "roles/compute.networkViewer"
+  role    = google_project_iam_custom_role.infoblox_uddi_asset_discovery.id
   member  = "serviceAccount:\${var.service_account_email}"
 }`,
   setupGuide: `1. Open the GCP Console and navigate to IAM & Admin > Service Accounts.
 2. Create a service account named "infoblox-uddi-discovery" (or use an existing one).
-3. Navigate to IAM & Admin > IAM.
-4. Click "Grant Access" and add the service account as a principal.
-5. Assign the role "Compute Viewer" (roles/compute.viewer).
-6. Click "Add Another Role" and assign "Compute Network Viewer" (roles/compute.networkViewer).
-7. Click "Save".
+3. Navigate to IAM & Admin > Roles.
+4. Click "Create Role".
+5. Name: "Infoblox UDDI - Asset Discovery", ID: "infobloxUddiAssetDiscovery".
+6. Click "Add Permissions" and add all 25 compute permissions:
+   - compute.instances.list, compute.instances.get
+   - compute.disks.list, compute.disks.get
+   - compute.networks.list, compute.networks.get
+   - compute.subnetworks.list, compute.subnetworks.get
+   - compute.addresses.list, compute.addresses.get
+   - compute.firewalls.list, compute.firewalls.get
+   - compute.routes.list, compute.routes.get
+   - compute.routers.list, compute.routers.get
+   - compute.forwardingRules.list, compute.forwardingRules.get
+   - compute.globalAddresses.list, compute.globalAddresses.get
+   - compute.globalForwardingRules.list, compute.globalForwardingRules.get
+   - compute.zones.list, compute.regions.list, compute.projects.get
+7. Click "Create".
+8. Navigate to IAM & Admin > IAM.
+9. Click "Grant Access", add the service account, and assign the custom role.
 
 Alternatively, use gcloud CLI:
-gcloud projects add-iam-policy-binding <PROJECT_ID> \\
-  --member="serviceAccount:<SA_EMAIL>" \\
-  --role="roles/compute.viewer"
+gcloud iam roles create infobloxUddiAssetDiscovery \\
+  --project=<PROJECT_ID> \\
+  --title="Infoblox UDDI - Asset Discovery" \\
+  --permissions="compute.instances.list,compute.instances.get,compute.disks.list,compute.disks.get,compute.networks.list,compute.networks.get,compute.subnetworks.list,compute.subnetworks.get,compute.addresses.list,compute.addresses.get,compute.firewalls.list,compute.firewalls.get,compute.routes.list,compute.routes.get,compute.routers.list,compute.routers.get,compute.forwardingRules.list,compute.forwardingRules.get,compute.globalAddresses.list,compute.globalAddresses.get,compute.globalForwardingRules.list,compute.globalForwardingRules.get,compute.zones.list,compute.regions.list,compute.projects.get"
 
 gcloud projects add-iam-policy-binding <PROJECT_ID> \\
   --member="serviceAccount:<SA_EMAIL>" \\
-  --role="roles/compute.networkViewer"`
+  --role="projects/<PROJECT_ID>/roles/infobloxUddiAssetDiscovery"`
 };
 
 const storageBuckets = {
@@ -159,27 +197,67 @@ const dnsReadOnly = {
   name: 'DNS - Read-Only',
   question: 'Sync Cloud DNS zones?',
   subQuestion: 'Read-only',
-  predefinedRoles: [
-    { role: 'roles/dns.reader', scope: 'project' }
+  predefinedRoles: [],
+  customPermissions: [
+    'dns.managedZones.get',
+    'dns.managedZones.list',
+    'dns.resourceRecordSets.get',
+    'dns.resourceRecordSets.list',
+    'dns.changes.get',
+    'dns.changes.list',
+    'dns.projects.get'
   ],
-  customPermissions: [],
   rationale: {
-    'roles/dns.reader': 'Read-only access to Cloud DNS zones and records for one-way sync'
+    'dns.managedZones.get': 'Retrieve managed zone configuration and metadata',
+    'dns.managedZones.list': 'Enumerate Cloud DNS managed zones in the project',
+    'dns.resourceRecordSets.get': 'Retrieve individual DNS record details',
+    'dns.resourceRecordSets.list': 'Enumerate DNS records within managed zones',
+    'dns.changes.get': 'Check status of DNS record change operations',
+    'dns.changes.list': 'List DNS record change history',
+    'dns.projects.get': 'Read DNS project-level settings'
   },
-  terraform: `resource "google_project_iam_member" "infoblox_uddi_dns_reader" {
+  terraform: `resource "google_project_iam_custom_role" "infoblox_uddi_dns_read_only" {
+  project     = var.project_id
+  role_id     = "infobloxUddiDnsReadOnly"
+  title       = "Infoblox UDDI - DNS Read-Only"
+  description = "Infoblox Universal DDI - DNS read-only sync permissions"
+  permissions = [
+    "dns.managedZones.get",
+    "dns.managedZones.list",
+    "dns.resourceRecordSets.get",
+    "dns.resourceRecordSets.list",
+    "dns.changes.get",
+    "dns.changes.list",
+    "dns.projects.get"
+  ]
+}
+
+resource "google_project_iam_member" "infoblox_uddi_dns_read_only" {
   project = var.project_id
-  role    = "roles/dns.reader"
+  role    = google_project_iam_custom_role.infoblox_uddi_dns_read_only.id
   member  = "serviceAccount:\${var.service_account_email}"
 }`,
-  setupGuide: `1. Navigate to IAM & Admin > IAM in the GCP Console.
-2. Click "Grant Access" and add the service account as a principal.
-3. Assign the role "DNS Reader" (roles/dns.reader).
-4. Click "Save".
+  setupGuide: `1. Navigate to IAM & Admin > Roles in the GCP Console.
+2. Click "Create Role".
+3. Name: "Infoblox UDDI - DNS Read-Only", ID: "infobloxUddiDnsReadOnly".
+4. Click "Add Permissions" and add the following 7 permissions:
+   - dns.managedZones.get, dns.managedZones.list
+   - dns.resourceRecordSets.get, dns.resourceRecordSets.list
+   - dns.changes.get, dns.changes.list
+   - dns.projects.get
+5. Click "Create".
+6. Navigate to IAM & Admin > IAM.
+7. Click "Grant Access", add the service account, and assign the custom role.
 
 Alternatively, use gcloud CLI:
+gcloud iam roles create infobloxUddiDnsReadOnly \\
+  --project=<PROJECT_ID> \\
+  --title="Infoblox UDDI - DNS Read-Only" \\
+  --permissions="dns.managedZones.get,dns.managedZones.list,dns.resourceRecordSets.get,dns.resourceRecordSets.list,dns.changes.get,dns.changes.list,dns.projects.get"
+
 gcloud projects add-iam-policy-binding <PROJECT_ID> \\
   --member="serviceAccount:<SA_EMAIL>" \\
-  --role="roles/dns.reader"`
+  --role="projects/<PROJECT_ID>/roles/infobloxUddiDnsReadOnly"`
 };
 
 const dnsReadWrite = {
@@ -187,27 +265,95 @@ const dnsReadWrite = {
   name: 'DNS - Read-Write',
   question: 'Sync Cloud DNS zones?',
   subQuestion: 'Read-write (bidirectional)',
-  predefinedRoles: [
-    { role: 'roles/dns.admin', scope: 'project' }
+  predefinedRoles: [],
+  customPermissions: [
+    'dns.managedZones.get',
+    'dns.managedZones.list',
+    'dns.managedZones.create',
+    'dns.managedZones.update',
+    'dns.managedZones.delete',
+    'dns.resourceRecordSets.get',
+    'dns.resourceRecordSets.list',
+    'dns.resourceRecordSets.create',
+    'dns.resourceRecordSets.update',
+    'dns.resourceRecordSets.delete',
+    'dns.changes.create',
+    'dns.changes.get',
+    'dns.changes.list',
+    'dns.projects.get',
+    'dns.networks.bindPrivateDNSZone',
+    'dns.networks.bindPrivateDNSPolicy'
   ],
-  customPermissions: [],
   rationale: {
-    'roles/dns.admin': 'Full access to Cloud DNS zones and records for bidirectional sync'
+    'dns.managedZones.get': 'Retrieve managed zone configuration and metadata',
+    'dns.managedZones.list': 'Enumerate Cloud DNS managed zones in the project',
+    'dns.managedZones.create': 'Create new managed zones for bidirectional DNS sync',
+    'dns.managedZones.update': 'Modify managed zone configuration and DNSSEC settings',
+    'dns.managedZones.delete': 'Remove managed zones when decommissioning',
+    'dns.resourceRecordSets.get': 'Retrieve individual DNS record details',
+    'dns.resourceRecordSets.list': 'Enumerate DNS records within managed zones',
+    'dns.resourceRecordSets.create': 'Create DNS records in managed zones',
+    'dns.resourceRecordSets.update': 'Modify existing DNS records in managed zones',
+    'dns.resourceRecordSets.delete': 'Remove DNS records from managed zones',
+    'dns.changes.create': 'Submit record set change batches to Cloud DNS',
+    'dns.changes.get': 'Check status of DNS record change operations',
+    'dns.changes.list': 'List DNS record change history',
+    'dns.projects.get': 'Read DNS project-level settings',
+    'dns.networks.bindPrivateDNSZone': 'Bind private DNS zones to VPC networks',
+    'dns.networks.bindPrivateDNSPolicy': 'Bind DNS policies to VPC networks'
   },
-  terraform: `resource "google_project_iam_member" "infoblox_uddi_dns_admin" {
+  terraform: `resource "google_project_iam_custom_role" "infoblox_uddi_dns_read_write" {
+  project     = var.project_id
+  role_id     = "infobloxUddiDnsReadWrite"
+  title       = "Infoblox UDDI - DNS Read-Write"
+  description = "Infoblox Universal DDI - DNS bidirectional sync permissions"
+  permissions = [
+    "dns.managedZones.get",
+    "dns.managedZones.list",
+    "dns.managedZones.create",
+    "dns.managedZones.update",
+    "dns.managedZones.delete",
+    "dns.resourceRecordSets.get",
+    "dns.resourceRecordSets.list",
+    "dns.resourceRecordSets.create",
+    "dns.resourceRecordSets.update",
+    "dns.resourceRecordSets.delete",
+    "dns.changes.create",
+    "dns.changes.get",
+    "dns.changes.list",
+    "dns.projects.get",
+    "dns.networks.bindPrivateDNSZone",
+    "dns.networks.bindPrivateDNSPolicy"
+  ]
+}
+
+resource "google_project_iam_member" "infoblox_uddi_dns_read_write" {
   project = var.project_id
-  role    = "roles/dns.admin"
+  role    = google_project_iam_custom_role.infoblox_uddi_dns_read_write.id
   member  = "serviceAccount:\${var.service_account_email}"
 }`,
-  setupGuide: `1. Navigate to IAM & Admin > IAM in the GCP Console.
-2. Click "Grant Access" and add the service account as a principal.
-3. Assign the role "DNS Administrator" (roles/dns.admin).
-4. Click "Save".
+  setupGuide: `1. Navigate to IAM & Admin > Roles in the GCP Console.
+2. Click "Create Role".
+3. Name: "Infoblox UDDI - DNS Read-Write", ID: "infobloxUddiDnsReadWrite".
+4. Click "Add Permissions" and add all 16 permissions:
+   - dns.managedZones.get, dns.managedZones.list, dns.managedZones.create, dns.managedZones.update, dns.managedZones.delete
+   - dns.resourceRecordSets.get, dns.resourceRecordSets.list, dns.resourceRecordSets.create, dns.resourceRecordSets.update, dns.resourceRecordSets.delete
+   - dns.changes.create, dns.changes.get, dns.changes.list
+   - dns.projects.get
+   - dns.networks.bindPrivateDNSZone, dns.networks.bindPrivateDNSPolicy
+5. Click "Create".
+6. Navigate to IAM & Admin > IAM.
+7. Click "Grant Access", add the service account, and assign the custom role.
 
 Alternatively, use gcloud CLI:
+gcloud iam roles create infobloxUddiDnsReadWrite \\
+  --project=<PROJECT_ID> \\
+  --title="Infoblox UDDI - DNS Read-Write" \\
+  --permissions="dns.managedZones.get,dns.managedZones.list,dns.managedZones.create,dns.managedZones.update,dns.managedZones.delete,dns.resourceRecordSets.get,dns.resourceRecordSets.list,dns.resourceRecordSets.create,dns.resourceRecordSets.update,dns.resourceRecordSets.delete,dns.changes.create,dns.changes.get,dns.changes.list,dns.projects.get,dns.networks.bindPrivateDNSZone,dns.networks.bindPrivateDNSPolicy"
+
 gcloud projects add-iam-policy-binding <PROJECT_ID> \\
   --member="serviceAccount:<SA_EMAIL>" \\
-  --role="roles/dns.admin"`
+  --role="projects/<PROJECT_ID>/roles/infobloxUddiDnsReadWrite"`
 };
 
 const cloudForwardingInbound = {
@@ -556,8 +702,12 @@ gcloud projects add-iam-policy-binding <PROJECT_ID> \\
 /**
  * All GCP feature categories for the UDDI Permission Scope Helper.
  *
- * Keys are feature IDs, values contain predefinedRoles, customPermissions,
- * terraform HCL, setupGuide text, and per-role/permission rationale.
+ * Keys are feature IDs, values contain customPermissions, terraform HCL,
+ * setupGuide text, and per-permission rationale. All features use custom
+ * roles with granular permissions only. The sole exception is
+ * multiProjectOrg, which also uses predefined roles (organizationViewer,
+ * folderViewer) at org/folder scope.
+ *
  * DNS and Cloud Forwarding have sub-feature variants as separate entries.
  * Cloud Forwarding "Both" is not a separate entry — when both inbound and
  * outbound are selected, the generator functions merge and deduplicate to
