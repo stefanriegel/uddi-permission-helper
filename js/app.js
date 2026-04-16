@@ -5,7 +5,7 @@
 import { setActiveProvider, getActiveProvider, hasProviderData, setFeature, getFeatures, setSelectionMode, getSelectionMode } from './state.js';
 import { updateProviderCards, updateWorkspace, renderWizard, renderAdvanced } from './ui.js';
 import { getQuestionsForProvider } from './questions.js';
-import { renderOutput, updateBadge } from './output.js';
+import { renderOutput, updateBadge, getActiveTabContent, getActiveTabId, getDownloadFilename, setButtonsDisabled } from './output.js';
 
 /**
  * Refresh the output panel content and badge for the current provider state.
@@ -132,9 +132,61 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // Set data-action attributes on Copy/Download buttons for Plan 02
-  const copyBtn = document.querySelector('.output__action:first-of-type');
-  const downloadBtn = document.querySelector('.output__action:last-of-type');
-  if (copyBtn) copyBtn.dataset.action = 'copy';
-  if (downloadBtn) downloadBtn.dataset.action = 'download';
+  // Copy button handler
+  const copyBtn = document.querySelector('[data-action="copy"]');
+  if (copyBtn) {
+    copyBtn.addEventListener('click', async () => {
+      const content = getActiveTabContent();
+      if (!content) return;
+
+      try {
+        await navigator.clipboard.writeText(content);
+      } catch {
+        // Fallback for HTTP localhost
+        const textarea = document.createElement('textarea');
+        textarea.value = content;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+      }
+
+      // Confirmation UX: text changes to "Copied!" for 2s with green flash
+      const originalText = copyBtn.textContent;
+      copyBtn.textContent = 'Copied!';
+      copyBtn.classList.add('output__action--copied');
+      setTimeout(() => {
+        copyBtn.textContent = originalText;
+        copyBtn.classList.remove('output__action--copied');
+      }, 2000);
+    });
+  }
+
+  // Download button handler
+  const downloadBtn = document.querySelector('[data-action="download"]');
+  if (downloadBtn) {
+    downloadBtn.addEventListener('click', () => {
+      const content = getActiveTabContent();
+      if (!content) return;
+
+      const providerId = getActiveProvider();
+      const tabId = getActiveTabId();
+      const filename = getDownloadFilename(providerId, tabId);
+
+      const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    });
+  }
+
+  // Disable copy/download buttons initially (no features selected)
+  setButtonsDisabled(true);
 });

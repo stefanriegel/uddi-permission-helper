@@ -209,8 +209,11 @@ export function renderOutput(providerId, features) {
     policyPanel.innerHTML = placeholder;
     terraformPanel.innerHTML = placeholder;
     guidePanel.innerHTML = placeholder;
+    setButtonsDisabled(true);
     return;
   }
+
+  setButtonsDisabled(false);
 
   // Generate content per provider
   let policyContent = '';
@@ -293,4 +296,78 @@ export function updateBadge(providerId, features) {
   } else {
     badge.classList.remove('output__badge--active');
   }
+}
+
+/**
+ * Get the text content of the currently visible output panel.
+ * @returns {string|null} Raw text content, or null if no visible panel or placeholder showing.
+ */
+export function getActiveTabContent() {
+  const panel = document.querySelector('.output__panel:not([hidden])');
+  if (!panel) return null;
+
+  // If placeholder is showing, return null
+  if (panel.querySelector('.output__placeholder')) return null;
+
+  const text = panel.textContent;
+  return text && text.trim() ? text.trim() : null;
+}
+
+/**
+ * Get the ID of the currently active tab's controlled panel.
+ * @returns {string|null} Panel ID (e.g., 'panel-policy'), or null if none active.
+ */
+export function getActiveTabId() {
+  const activeTab = document.querySelector('.output__tab--active');
+  if (!activeTab) return null;
+  return activeTab.getAttribute('aria-controls');
+}
+
+/**
+ * Get the appropriate download filename for the active provider and tab.
+ * @param {string} providerId - Active provider ('aws', 'azure', 'gcp')
+ * @param {string} tabId - Panel ID ('panel-policy', 'panel-terraform', 'panel-guide')
+ * @returns {string} Filename with extension
+ */
+export function getDownloadFilename(providerId, tabId) {
+  const extensions = {
+    'panel-policy': {
+      aws: 'aws-policy.json',
+      azure: 'azure-policy.sh',
+      gcp: 'gcp-policy.sh'
+    },
+    'panel-terraform': {
+      aws: 'aws-terraform.tf',
+      azure: 'azure-terraform.tf',
+      gcp: 'gcp-terraform.tf'
+    },
+    'panel-guide': {
+      aws: 'aws-setup-guide.txt',
+      azure: 'azure-setup-guide.txt',
+      gcp: 'gcp-setup-guide.txt'
+    }
+  };
+
+  const tabMap = extensions[tabId];
+  if (tabMap && tabMap[providerId]) {
+    return tabMap[providerId];
+  }
+  return `${providerId}-output.txt`;
+}
+
+/**
+ * Enable or disable the Copy and Download action buttons.
+ * @param {boolean} disabled - True to disable, false to enable.
+ */
+export function setButtonsDisabled(disabled) {
+  const buttons = document.querySelectorAll('[data-action="copy"], [data-action="download"]');
+  buttons.forEach(btn => {
+    if (disabled) {
+      btn.setAttribute('disabled', '');
+      btn.classList.add('output__action--disabled');
+    } else {
+      btn.removeAttribute('disabled');
+      btn.classList.remove('output__action--disabled');
+    }
+  });
 }

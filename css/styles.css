@@ -666,6 +666,21 @@ input {
   background: transparent;
 }
 
+/* Copied confirmation flash */
+.output__action--copied {
+  background: #22c55e;
+  color: white;
+  border-color: #22c55e;
+}
+
+/* Disabled state for copy/download */
+.output__action--disabled,
+.output__action:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
 /* Output placeholder text */
 .output__placeholder {
   color: var(--color-output-muted);
