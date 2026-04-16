@@ -137,7 +137,7 @@ Plans:
   4. Site is accessible at a public GitHub Pages URL
 **Plans**: 1 plan
 Plans:
-- [ ] 01-01-PLAN.md — Infoblox-branded HTML/CSS shell with design tokens, semantic HTML, and responsive layout
+- [ ] 08-01-PLAN.md — AWS policy size warning, offline cache hints, and deployment README
 
 ## Progress
 
@@ -153,4 +153,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
 | 5. GCP Permission Data | 0/2 | Not started | - |
 | 6. Feature Selection Wizard | 0/2 | Not started | - |
 | 7. Output Engine + Utilities | 0/2 | Not started | - |
-| 8. Hardening + Deploy | 0/? | Not started | - |
+| 8. Hardening + Deploy | 0/1 | Not started | - |
