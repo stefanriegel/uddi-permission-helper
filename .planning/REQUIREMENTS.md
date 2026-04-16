@@ -110,59 +110,59 @@ Deferred to future release. Tracked but not in current roadmap.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| PROV-01 | — | Pending |
-| PROV-02 | — | Pending |
-| PROV-03 | — | Pending |
-| FEAT-01 | — | Pending |
-| FEAT-02 | — | Pending |
-| FEAT-03 | — | Pending |
-| FEAT-04 | — | Pending |
-| FEAT-05 | — | Pending |
-| FEAT-06 | — | Pending |
-| AWS-01 | — | Pending |
-| AWS-02 | — | Pending |
-| AWS-03 | — | Pending |
-| AWS-04 | — | Pending |
-| AWS-05 | — | Pending |
-| AWS-06 | — | Pending |
-| AWS-07 | — | Pending |
-| AWS-08 | — | Pending |
-| AWS-09 | — | Pending |
-| AZR-01 | — | Pending |
-| AZR-02 | — | Pending |
-| AZR-03 | — | Pending |
-| AZR-04 | — | Pending |
-| AZR-05 | — | Pending |
-| AZR-06 | — | Pending |
-| AZR-07 | — | Pending |
-| GCP-01 | — | Pending |
-| GCP-02 | — | Pending |
-| GCP-03 | — | Pending |
-| GCP-04 | — | Pending |
-| GCP-05 | — | Pending |
-| GCP-06 | — | Pending |
-| GCP-07 | — | Pending |
-| GCP-08 | — | Pending |
-| GCP-09 | — | Pending |
-| OUT-01 | — | Pending |
-| OUT-02 | — | Pending |
-| OUT-03 | — | Pending |
-| OUT-04 | — | Pending |
-| OUT-05 | — | Pending |
-| OUT-06 | — | Pending |
-| OUT-07 | — | Pending |
-| OUT-08 | — | Pending |
-| DSN-01 | — | Pending |
-| DSN-02 | — | Pending |
-| DSN-03 | — | Pending |
-| DSN-04 | — | Pending |
-| DSN-05 | — | Pending |
+| DSN-01 | Phase 1 | Pending |
+| DSN-02 | Phase 1 | Pending |
+| DSN-03 | Phase 1 | Pending |
+| DSN-04 | Phase 1 | Pending |
+| PROV-01 | Phase 2 | Pending |
+| PROV-02 | Phase 2 | Pending |
+| PROV-03 | Phase 2 | Pending |
+| AWS-01 | Phase 3 | Pending |
+| AWS-02 | Phase 3 | Pending |
+| AWS-03 | Phase 3 | Pending |
+| AWS-04 | Phase 3 | Pending |
+| AWS-05 | Phase 3 | Pending |
+| AWS-06 | Phase 3 | Pending |
+| AWS-07 | Phase 3 | Pending |
+| AWS-08 | Phase 3 | Pending |
+| AWS-09 | Phase 3 | Pending |
+| AZR-01 | Phase 4 | Pending |
+| AZR-02 | Phase 4 | Pending |
+| AZR-03 | Phase 4 | Pending |
+| AZR-04 | Phase 4 | Pending |
+| AZR-05 | Phase 4 | Pending |
+| AZR-06 | Phase 4 | Pending |
+| AZR-07 | Phase 4 | Pending |
+| GCP-01 | Phase 5 | Pending |
+| GCP-02 | Phase 5 | Pending |
+| GCP-03 | Phase 5 | Pending |
+| GCP-04 | Phase 5 | Pending |
+| GCP-05 | Phase 5 | Pending |
+| GCP-06 | Phase 5 | Pending |
+| GCP-07 | Phase 5 | Pending |
+| GCP-08 | Phase 5 | Pending |
+| GCP-09 | Phase 5 | Pending |
+| FEAT-01 | Phase 6 | Pending |
+| FEAT-02 | Phase 6 | Pending |
+| FEAT-03 | Phase 6 | Pending |
+| FEAT-04 | Phase 6 | Pending |
+| FEAT-05 | Phase 6 | Pending |
+| FEAT-06 | Phase 6 | Pending |
+| OUT-01 | Phase 7 | Pending |
+| OUT-02 | Phase 7 | Pending |
+| OUT-03 | Phase 7 | Pending |
+| OUT-04 | Phase 7 | Pending |
+| OUT-05 | Phase 7 | Pending |
+| OUT-06 | Phase 7 | Pending |
+| OUT-07 | Phase 7 | Pending |
+| OUT-08 | Phase 7 | Pending |
+| DSN-05 | Phase 8 | Pending |
 
 **Coverage:**
 - v1 requirements: 44 total
-- Mapped to phases: 0
-- Unmapped: 44 ⚠️
+- Mapped to phases: 44
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-04-16*
-*Last updated: 2026-04-16 after initial definition*
+*Last updated: 2026-04-16 after roadmap creation*
