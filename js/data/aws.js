@@ -8,6 +8,7 @@
 
 const vpcIpamDiscovery = {
   id: 'vpcIpamDiscovery',
+  product: 'assetInsight',
   name: 'VPC/IPAM Discovery',
   question: 'Discover VPCs, subnets, IP address management?',
   actions: [
@@ -31,6 +32,7 @@ const vpcIpamDiscovery = {
     'ec2:DescribeIpamPools',
     'ec2:GetIpamPoolAllocations',
     'ec2:GetIpamPoolCidrs',
+    'ec2:GetIpamResourceCidrs',
     'directconnect:DescribeDirectConnectGateways'
   ],
   rationale: {
@@ -54,6 +56,7 @@ const vpcIpamDiscovery = {
     'ec2:DescribeIpamPools': 'List IPAM pools and their CIDR allocations',
     'ec2:GetIpamPoolAllocations': 'Retrieve individual IP allocations within pools',
     'ec2:GetIpamPoolCidrs': 'Get CIDR blocks provisioned to IPAM pools',
+    'ec2:GetIpamResourceCidrs': 'List CIDR allocations across IPAM-managed resources',
     'directconnect:DescribeDirectConnectGateways': 'Discover Direct Connect gateways for hybrid connectivity'
   },
   terraform: `resource "aws_iam_policy" "infoblox_uddi_vpc_ipam_discovery" {
@@ -86,6 +89,7 @@ const vpcIpamDiscovery = {
           "ec2:DescribeIpamPools",
           "ec2:GetIpamPoolAllocations",
           "ec2:GetIpamPoolCidrs",
+          "ec2:GetIpamResourceCidrs",
           "directconnect:DescribeDirectConnectGateways"
         ]
         Resource = "*"
@@ -101,6 +105,7 @@ const vpcIpamDiscovery = {
 
 const ec2Networking = {
   id: 'ec2Networking',
+  product: 'assetInsight',
   name: 'EC2 & Networking',
   question: 'EC2 instances, network interfaces, security groups, load balancers?',
   actions: [
@@ -155,6 +160,7 @@ const ec2Networking = {
 
 const s3BucketVisibility = {
   id: 's3BucketVisibility',
+  product: 'assetInsight',
   name: 'S3 Bucket Visibility',
   question: 'Detect dangling DNS or publicly accessible buckets?',
   actions: [
@@ -194,6 +200,7 @@ const s3BucketVisibility = {
 
 const dnsRoute53ReadOnly = {
   id: 'dnsRoute53ReadOnly',
+  product: 'ddi',
   name: 'DNS (Route 53) - Read-Only',
   question: 'Sync DNS zones?',
   subQuestion: 'Read-only',
@@ -246,6 +253,7 @@ const dnsRoute53ReadOnly = {
 
 const dnsRoute53Bidirectional = {
   id: 'dnsRoute53Bidirectional',
+  product: 'ddi',
   name: 'DNS (Route 53) - Bidirectional',
   question: 'Sync DNS zones?',
   subQuestion: 'Bidirectional (read and write)',
@@ -255,15 +263,14 @@ const dnsRoute53Bidirectional = {
     'route53:ListResourceRecordSets',
     'route53:ListTagsForResources',
     'route53:ListQueryLoggingConfigs',
-    'route53:GetHealthCheck',
-    'route53:ListHealthChecks',
     'route53:CreateHostedZone',
     'route53:DeleteHostedZone',
     'route53:ChangeResourceRecordSets',
     'route53:UpdateHostedZoneComment',
     'route53:ListVPCAssociationAuthorizations',
     'route53:ListTrafficPolicyInstancesByHostedZone',
-    'ec2:DescribeRegions'
+    'ec2:DescribeRegions',
+    'ec2:DescribeVpcs'
   ],
   rationale: {
     'route53:GetHostedZone': 'Retrieve hosted zone details and configuration',
@@ -271,15 +278,14 @@ const dnsRoute53Bidirectional = {
     'route53:ListResourceRecordSets': 'Read DNS records within hosted zones',
     'route53:ListTagsForResources': 'Read tags on hosted zones for organization and filtering',
     'route53:ListQueryLoggingConfigs': 'Discover DNS query logging configurations',
-    'route53:GetHealthCheck': 'Retrieve health check configurations',
-    'route53:ListHealthChecks': 'Enumerate Route 53 health checks',
     'route53:CreateHostedZone': 'Create new hosted zones for bidirectional DNS sync',
     'route53:DeleteHostedZone': 'Remove hosted zones during bidirectional cleanup',
     'route53:ChangeResourceRecordSets': 'Create, update, and delete DNS records',
     'route53:UpdateHostedZoneComment': 'Update hosted zone descriptions',
     'route53:ListVPCAssociationAuthorizations': 'List VPC association authorizations for private zones',
     'route53:ListTrafficPolicyInstancesByHostedZone': 'Enumerate traffic policy instances per zone',
-    'ec2:DescribeRegions': 'List available AWS regions for zone association'
+    'ec2:DescribeRegions': 'List available AWS regions for zone association',
+    'ec2:DescribeVpcs': 'List VPCs for private hosted zone VPC associations'
   },
   terraform: `resource "aws_iam_policy" "infoblox_uddi_dns_route53_bidirectional" {
   name        = "InfobloxUDDI-DnsRoute53-Bidirectional"
@@ -296,15 +302,14 @@ const dnsRoute53Bidirectional = {
           "route53:ListResourceRecordSets",
           "route53:ListTagsForResources",
           "route53:ListQueryLoggingConfigs",
-          "route53:GetHealthCheck",
-          "route53:ListHealthChecks",
           "route53:CreateHostedZone",
           "route53:DeleteHostedZone",
           "route53:ChangeResourceRecordSets",
           "route53:UpdateHostedZoneComment",
           "route53:ListVPCAssociationAuthorizations",
           "route53:ListTrafficPolicyInstancesByHostedZone",
-          "ec2:DescribeRegions"
+          "ec2:DescribeRegions",
+          "ec2:DescribeVpcs"
         ]
         Resource = "*"
       }
@@ -319,6 +324,7 @@ const dnsRoute53Bidirectional = {
 
 const cloudForwardingDiscovery = {
   id: 'cloudForwardingDiscovery',
+  product: 'ddi',
   name: 'Cloud Forwarding - Discovery Only',
   question: 'Route 53 Resolver endpoint management?',
   subQuestion: 'Discovery only',
@@ -368,6 +374,7 @@ const cloudForwardingDiscovery = {
 
 const cloudForwardingFull = {
   id: 'cloudForwardingFull',
+  product: 'ddi',
   name: 'Cloud Forwarding - Full Management',
   question: 'Route 53 Resolver endpoint management?',
   subQuestion: 'Full management',
@@ -435,6 +442,7 @@ const cloudForwardingFull = {
 
 const multiAccount = {
   id: 'multiAccount',
+  product: 'both',
   name: 'Multi-Account',
   question: 'Cross-account discovery via AWS Organizations?',
   policies: [
