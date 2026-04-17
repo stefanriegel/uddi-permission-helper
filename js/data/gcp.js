@@ -42,7 +42,9 @@ const assetDiscovery = {
     'compute.sslCertificates.list',
     'compute.vpnGateways.list',
     'compute.vpnTunnels.list',
-    'compute.targetVpnGateways.list'
+    'compute.targetVpnGateways.list',
+    'container.clusters.list',
+    'container.clusters.get'
   ],
   rationale: {
     'resourcemanager.projects.get': 'Retrieve project metadata and labels',
@@ -69,7 +71,9 @@ const assetDiscovery = {
     'compute.sslCertificates.list': 'Enumerate SSL certificates for HTTPS load balancers',
     'compute.vpnGateways.list': 'Enumerate HA VPN gateways',
     'compute.vpnTunnels.list': 'List VPN tunnels for site-to-site connectivity',
-    'compute.targetVpnGateways.list': 'Enumerate classic VPN gateway targets'
+    'compute.targetVpnGateways.list': 'Enumerate classic VPN gateway targets',
+    'container.clusters.list': 'Enumerate GKE clusters for Kubernetes asset discovery',
+    'container.clusters.get': 'Retrieve GKE cluster details and configuration'
   },
   terraform: `resource "google_project_iam_custom_role" "infoblox_uddi_asset_discovery" {
   project     = var.project_id
@@ -101,7 +105,9 @@ const assetDiscovery = {
     "compute.sslCertificates.list",
     "compute.vpnGateways.list",
     "compute.vpnTunnels.list",
-    "compute.targetVpnGateways.list"
+    "compute.targetVpnGateways.list",
+    "container.clusters.list",
+    "container.clusters.get"
   ]
 }
 
@@ -115,7 +121,7 @@ resource "google_project_iam_member" "infoblox_uddi_asset_discovery" {
 3. Navigate to IAM & Admin > Roles.
 4. Click "Create Role".
 5. Name: "Infoblox UDDI - Asset Discovery", ID: "infobloxUddiAssetDiscovery".
-6. Click "Add Permissions" and add all 25 permissions:
+6. Click "Add Permissions" and add all 27 permissions:
    - resourcemanager.projects.get
    - compute.instances.list, compute.disks.list
    - compute.networks.list, compute.subnetworks.list
@@ -128,6 +134,7 @@ resource "google_project_iam_member" "infoblox_uddi_asset_discovery" {
    - compute.targetSslProxies.list, compute.targetTcpProxies.list
    - compute.urlMaps.list, compute.healthChecks.list, compute.sslCertificates.list
    - compute.vpnGateways.list, compute.vpnTunnels.list, compute.targetVpnGateways.list
+   - container.clusters.list, container.clusters.get
 7. Click "Create".
 8. Navigate to IAM & Admin > IAM.
 9. Click "Grant Access", add the service account, and assign the custom role.
@@ -136,7 +143,7 @@ Alternatively, use gcloud CLI:
 gcloud iam roles create infobloxUddiAssetDiscovery \\
   --project=<PROJECT_ID> \\
   --title="Infoblox UDDI - Asset Discovery" \\
-  --permissions="resourcemanager.projects.get,compute.instances.list,compute.disks.list,compute.networks.list,compute.subnetworks.list,compute.firewalls.list,compute.addresses.list,compute.targetPools.list,compute.instanceGroups.list,compute.backendServices.list,compute.backendBuckets.list,compute.forwardingRules.list,compute.networkEndpointGroups.list,compute.routers.list,compute.routes.list,compute.targetHttpProxies.list,compute.targetHttpsProxies.list,compute.targetSslProxies.list,compute.targetTcpProxies.list,compute.urlMaps.list,compute.healthChecks.list,compute.sslCertificates.list,compute.vpnGateways.list,compute.vpnTunnels.list,compute.targetVpnGateways.list"
+  --permissions="resourcemanager.projects.get,compute.instances.list,compute.disks.list,compute.networks.list,compute.subnetworks.list,compute.firewalls.list,compute.addresses.list,compute.targetPools.list,compute.instanceGroups.list,compute.backendServices.list,compute.backendBuckets.list,compute.forwardingRules.list,compute.networkEndpointGroups.list,compute.routers.list,compute.routes.list,compute.targetHttpProxies.list,compute.targetHttpsProxies.list,compute.targetSslProxies.list,compute.targetTcpProxies.list,compute.urlMaps.list,compute.healthChecks.list,compute.sslCertificates.list,compute.vpnGateways.list,compute.vpnTunnels.list,compute.targetVpnGateways.list,container.clusters.list,container.clusters.get"
 
 gcloud projects add-iam-policy-binding <PROJECT_ID> \\
   --member="serviceAccount:<SA_EMAIL>" \\
@@ -210,14 +217,18 @@ const dnsReadOnly = {
     'dns.managedZones.list',
     'dns.resourceRecordSets.get',
     'dns.resourceRecordSets.list',
-    'dns.projects.get'
+    'dns.projects.get',
+    'compute.networks.get',
+    'compute.networks.list'
   ],
   rationale: {
     'dns.managedZones.get': 'Retrieve managed zone configuration and metadata',
     'dns.managedZones.list': 'Enumerate Cloud DNS managed zones in the project',
     'dns.resourceRecordSets.get': 'Retrieve individual DNS record details',
     'dns.resourceRecordSets.list': 'Enumerate DNS records within managed zones',
-    'dns.projects.get': 'Read DNS project-level settings'
+    'dns.projects.get': 'Read DNS project-level settings',
+    'compute.networks.get': 'Retrieve VPC network details for DNS zone association',
+    'compute.networks.list': 'Enumerate VPC networks for DNS discovery scope'
   },
   terraform: `resource "google_project_iam_custom_role" "infoblox_uddi_dns_read_only" {
   project     = var.project_id
@@ -229,7 +240,9 @@ const dnsReadOnly = {
     "dns.managedZones.list",
     "dns.resourceRecordSets.get",
     "dns.resourceRecordSets.list",
-    "dns.projects.get"
+    "dns.projects.get",
+    "compute.networks.get",
+    "compute.networks.list"
   ]
 }
 
@@ -241,10 +254,11 @@ resource "google_project_iam_member" "infoblox_uddi_dns_read_only" {
   setupGuide: `1. Navigate to IAM & Admin > Roles in the GCP Console.
 2. Click "Create Role".
 3. Name: "Infoblox UDDI - DNS Read-Only", ID: "infobloxUddiDnsReadOnly".
-4. Click "Add Permissions" and add the following 5 permissions:
+4. Click "Add Permissions" and add the following 7 permissions:
    - dns.managedZones.get, dns.managedZones.list
    - dns.resourceRecordSets.get, dns.resourceRecordSets.list
    - dns.projects.get
+   - compute.networks.get, compute.networks.list
 5. Click "Create".
 6. Navigate to IAM & Admin > IAM.
 7. Click "Grant Access", add the service account, and assign the custom role.
@@ -253,7 +267,7 @@ Alternatively, use gcloud CLI:
 gcloud iam roles create infobloxUddiDnsReadOnly \\
   --project=<PROJECT_ID> \\
   --title="Infoblox UDDI - DNS Read-Only" \\
-  --permissions="dns.managedZones.get,dns.managedZones.list,dns.resourceRecordSets.get,dns.resourceRecordSets.list,dns.projects.get"
+  --permissions="dns.managedZones.get,dns.managedZones.list,dns.resourceRecordSets.get,dns.resourceRecordSets.list,dns.projects.get,compute.networks.get,compute.networks.list"
 
 gcloud projects add-iam-policy-binding <PROJECT_ID> \\
   --member="serviceAccount:<SA_EMAIL>" \\
@@ -280,7 +294,9 @@ const dnsReadWrite = {
     'dns.resourceRecordSets.delete',
     'dns.projects.get',
     'dns.networks.bindPrivateDNSZone',
-    'dns.networks.bindPrivateDNSPolicy'
+    'dns.networks.bindPrivateDNSPolicy',
+    'compute.networks.get',
+    'compute.networks.list'
   ],
   rationale: {
     'dns.managedZones.get': 'Retrieve managed zone configuration and metadata',
@@ -295,7 +311,9 @@ const dnsReadWrite = {
     'dns.resourceRecordSets.delete': 'Remove DNS records from managed zones',
     'dns.projects.get': 'Read DNS project-level settings',
     'dns.networks.bindPrivateDNSZone': 'Bind private DNS zones to VPC networks',
-    'dns.networks.bindPrivateDNSPolicy': 'Bind DNS policies to VPC networks'
+    'dns.networks.bindPrivateDNSPolicy': 'Bind DNS policies to VPC networks',
+    'compute.networks.get': 'Retrieve VPC network details for private zone binding',
+    'compute.networks.list': 'Enumerate VPC networks for DNS zone association'
   },
   terraform: `resource "google_project_iam_custom_role" "infoblox_uddi_dns_read_write" {
   project     = var.project_id
@@ -315,7 +333,9 @@ const dnsReadWrite = {
     "dns.resourceRecordSets.delete",
     "dns.projects.get",
     "dns.networks.bindPrivateDNSZone",
-    "dns.networks.bindPrivateDNSPolicy"
+    "dns.networks.bindPrivateDNSPolicy",
+    "compute.networks.get",
+    "compute.networks.list"
   ]
 }
 
@@ -327,11 +347,12 @@ resource "google_project_iam_member" "infoblox_uddi_dns_read_write" {
   setupGuide: `1. Navigate to IAM & Admin > Roles in the GCP Console.
 2. Click "Create Role".
 3. Name: "Infoblox UDDI - DNS Read-Write", ID: "infobloxUddiDnsReadWrite".
-4. Click "Add Permissions" and add all 13 permissions:
+4. Click "Add Permissions" and add all 15 permissions:
    - dns.managedZones.get, dns.managedZones.list, dns.managedZones.create, dns.managedZones.update, dns.managedZones.delete
    - dns.resourceRecordSets.get, dns.resourceRecordSets.list, dns.resourceRecordSets.create, dns.resourceRecordSets.update, dns.resourceRecordSets.delete
    - dns.projects.get
    - dns.networks.bindPrivateDNSZone, dns.networks.bindPrivateDNSPolicy
+   - compute.networks.get, compute.networks.list
 5. Click "Create".
 6. Navigate to IAM & Admin > IAM.
 7. Click "Grant Access", add the service account, and assign the custom role.
@@ -340,7 +361,7 @@ Alternatively, use gcloud CLI:
 gcloud iam roles create infobloxUddiDnsReadWrite \\
   --project=<PROJECT_ID> \\
   --title="Infoblox UDDI - DNS Read-Write" \\
-  --permissions="dns.managedZones.get,dns.managedZones.list,dns.managedZones.create,dns.managedZones.update,dns.managedZones.delete,dns.resourceRecordSets.get,dns.resourceRecordSets.list,dns.resourceRecordSets.create,dns.resourceRecordSets.update,dns.resourceRecordSets.delete,dns.projects.get,dns.networks.bindPrivateDNSZone,dns.networks.bindPrivateDNSPolicy"
+  --permissions="dns.managedZones.get,dns.managedZones.list,dns.managedZones.create,dns.managedZones.update,dns.managedZones.delete,dns.resourceRecordSets.get,dns.resourceRecordSets.list,dns.resourceRecordSets.create,dns.resourceRecordSets.update,dns.resourceRecordSets.delete,dns.projects.get,dns.networks.bindPrivateDNSZone,dns.networks.bindPrivateDNSPolicy,compute.networks.get,compute.networks.list"
 
 gcloud projects add-iam-policy-binding <PROJECT_ID> \\
   --member="serviceAccount:<SA_EMAIL>" \\
