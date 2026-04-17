@@ -56,6 +56,32 @@ const discoveryReaderCustomRole = {
     // Private DNS zone read
     'Microsoft.Network/privateDnsZones/read',
     'Microsoft.Network/privateDnsZones/all/read',
+    // Subscription and tenant metadata
+    'Microsoft.Resources/subscriptions/read',
+    'Microsoft.Resources/tenants/read',
+    // VM Scale Sets
+    'Microsoft.Compute/virtualMachineScaleSets/read',
+    // Network interface IP configurations
+    'Microsoft.Network/networkInterfaces/ipConfigurations/read',
+    // Application gateways and firewalls
+    'Microsoft.Network/applicationGateways/read',
+    'Microsoft.Network/azureFirewalls/read',
+    // Virtual WAN
+    'Microsoft.Network/virtualHubs/read',
+    'Microsoft.Network/virtualWans/read',
+    'Microsoft.Network/vpnGateways/read',
+    // Network watchers
+    'Microsoft.Network/networkWatchers/read',
+    'Microsoft.Network/networkWatchers/flowLogs/read',
+    // Storage
+    'Microsoft.Storage/storageAccounts/read',
+    'Microsoft.Storage/storageAccounts/blobServices/containers/read',
+    // Management groups
+    'Microsoft.Management/managementGroups/read',
+    // Monitoring
+    'Microsoft.Insights/metrics/read',
+    // Traffic manager
+    'Microsoft.Network/trafficManagerProfiles/read',
     // Resource enumeration
     'Microsoft.Resources/subscriptions/resourceGroups/read'
   ],
@@ -64,6 +90,7 @@ const discoveryReaderCustomRole = {
 
 const ipamAssetDiscovery = {
   id: 'ipamAssetDiscovery',
+  product: 'assetInsight',
   name: 'IPAM / Asset Discovery',
   question: 'Discover VNets, subnets, VMs, IP addresses?',
   roles: [],
@@ -103,6 +130,22 @@ resource "azurerm_role_definition" "infoblox_uddi_discovery_reader" {
       "Microsoft.Network/dnsZones/all/read",
       "Microsoft.Network/privateDnsZones/read",
       "Microsoft.Network/privateDnsZones/all/read",
+      "Microsoft.Resources/subscriptions/read",
+      "Microsoft.Resources/tenants/read",
+      "Microsoft.Compute/virtualMachineScaleSets/read",
+      "Microsoft.Network/networkInterfaces/ipConfigurations/read",
+      "Microsoft.Network/applicationGateways/read",
+      "Microsoft.Network/azureFirewalls/read",
+      "Microsoft.Network/virtualHubs/read",
+      "Microsoft.Network/virtualWans/read",
+      "Microsoft.Network/vpnGateways/read",
+      "Microsoft.Network/networkWatchers/read",
+      "Microsoft.Network/networkWatchers/flowLogs/read",
+      "Microsoft.Storage/storageAccounts/read",
+      "Microsoft.Storage/storageAccounts/blobServices/containers/read",
+      "Microsoft.Management/managementGroups/read",
+      "Microsoft.Insights/metrics/read",
+      "Microsoft.Network/trafficManagerProfiles/read",
       "Microsoft.Resources/subscriptions/resourceGroups/read"
     ]
     not_actions = []
@@ -123,7 +166,7 @@ resource "azurerm_role_assignment" "infoblox_uddi_discovery_reader" {
 3. Create a client secret under Certificates & secrets and note the value.
 4. Navigate to Subscriptions > your subscription > Access control (IAM) > Roles.
 5. Click "Add custom role" and name it "Infoblox UDDI - Discovery Reader".
-6. Under Permissions, add the 22 read actions listed in the policy output (network, compute, DNS, and resource group reads).
+6. Under Permissions, add the 38 read actions listed in the policy output (network, compute, DNS, storage, and resource group reads).
 7. Set the assignable scope to the target subscription and create the role.
 8. Go back to Access control (IAM) > Add role assignment.
 9. Select the "Infoblox UDDI - Discovery Reader" custom role and assign it to the service principal.
@@ -132,6 +175,7 @@ resource "azurerm_role_assignment" "infoblox_uddi_discovery_reader" {
 
 const publicDnsReadOnly = {
   id: 'publicDnsReadOnly',
+  product: 'ddi',
   name: 'Public DNS - Read-Only',
   question: 'Sync public DNS zones?',
   subQuestion: 'Read-only',
@@ -174,6 +218,22 @@ resource "azurerm_role_definition" "infoblox_uddi_discovery_reader" {
       "Microsoft.Network/dnsZones/all/read",
       "Microsoft.Network/privateDnsZones/read",
       "Microsoft.Network/privateDnsZones/all/read",
+      "Microsoft.Resources/subscriptions/read",
+      "Microsoft.Resources/tenants/read",
+      "Microsoft.Compute/virtualMachineScaleSets/read",
+      "Microsoft.Network/networkInterfaces/ipConfigurations/read",
+      "Microsoft.Network/applicationGateways/read",
+      "Microsoft.Network/azureFirewalls/read",
+      "Microsoft.Network/virtualHubs/read",
+      "Microsoft.Network/virtualWans/read",
+      "Microsoft.Network/vpnGateways/read",
+      "Microsoft.Network/networkWatchers/read",
+      "Microsoft.Network/networkWatchers/flowLogs/read",
+      "Microsoft.Storage/storageAccounts/read",
+      "Microsoft.Storage/storageAccounts/blobServices/containers/read",
+      "Microsoft.Management/managementGroups/read",
+      "Microsoft.Insights/metrics/read",
+      "Microsoft.Network/trafficManagerProfiles/read",
       "Microsoft.Resources/subscriptions/resourceGroups/read"
     ]
     not_actions = []
@@ -191,12 +251,13 @@ resource "azurerm_role_assignment" "infoblox_uddi_discovery_reader" {
 }`,
   setupGuide: `1. The "Infoblox UDDI - Discovery Reader" custom role covers public DNS read-only access (zone enumeration and record listing).
 2. If you have already created this custom role for IPAM/Asset Discovery, no additional step is needed.
-3. Otherwise, create the custom role with the 22 read actions listed in the policy output.
+3. Otherwise, create the custom role with the 38 read actions listed in the policy output.
 4. Assign the "Infoblox UDDI - Discovery Reader" custom role to the Infoblox Universal DDI service principal.`
 };
 
 const publicDnsReadWrite = {
   id: 'publicDnsReadWrite',
+  product: 'ddi',
   name: 'Public DNS - Read-Write',
   question: 'Sync public DNS zones?',
   subQuestion: 'Read-write (bidirectional)',
@@ -239,6 +300,22 @@ resource "azurerm_role_definition" "infoblox_uddi_discovery_reader" {
       "Microsoft.Network/dnsZones/all/read",
       "Microsoft.Network/privateDnsZones/read",
       "Microsoft.Network/privateDnsZones/all/read",
+      "Microsoft.Resources/subscriptions/read",
+      "Microsoft.Resources/tenants/read",
+      "Microsoft.Compute/virtualMachineScaleSets/read",
+      "Microsoft.Network/networkInterfaces/ipConfigurations/read",
+      "Microsoft.Network/applicationGateways/read",
+      "Microsoft.Network/azureFirewalls/read",
+      "Microsoft.Network/virtualHubs/read",
+      "Microsoft.Network/virtualWans/read",
+      "Microsoft.Network/vpnGateways/read",
+      "Microsoft.Network/networkWatchers/read",
+      "Microsoft.Network/networkWatchers/flowLogs/read",
+      "Microsoft.Storage/storageAccounts/read",
+      "Microsoft.Storage/storageAccounts/blobServices/containers/read",
+      "Microsoft.Management/managementGroups/read",
+      "Microsoft.Insights/metrics/read",
+      "Microsoft.Network/trafficManagerProfiles/read",
       "Microsoft.Resources/subscriptions/resourceGroups/read"
     ]
     not_actions = []
@@ -266,7 +343,7 @@ resource "azurerm_role_assignment" "infoblox_uddi_dns_zone_contributor" {
   principal_id       = var.infoblox_service_principal_id
 }`,
   setupGuide: `1. Navigate to Subscriptions > your subscription > Access control (IAM) > Roles.
-2. Create the "Infoblox UDDI - Discovery Reader" custom role with the 22 read actions listed in the policy output (if not already created for IPAM/Asset Discovery).
+2. Create the "Infoblox UDDI - Discovery Reader" custom role with the 38 read actions listed in the policy output (if not already created for IPAM/Asset Discovery).
 3. Assign the "Infoblox UDDI - Discovery Reader" custom role to the service principal.
 4. Click "Add role assignment" and select the "DNS Zone Contributor" built-in role.
 5. Assign it to the same service principal.
@@ -275,6 +352,7 @@ resource "azurerm_role_assignment" "infoblox_uddi_dns_zone_contributor" {
 
 const privateDns = {
   id: 'privateDns',
+  product: 'ddi',
   name: 'Private DNS Sync',
   question: 'Sync private DNS zones?',
   roles: [
@@ -303,6 +381,7 @@ resource "azurerm_role_assignment" "infoblox_uddi_private_dns_zone_contributor" 
 
 const cloudForwardingDiscovery = {
   id: 'cloudForwardingDiscovery',
+  product: 'ddi',
   name: 'Cloud Forwarding - Discovery Only',
   question: 'Manage Azure DNS Private Resolvers?',
   subQuestion: 'Discovery only',
@@ -390,6 +469,7 @@ az role assignment create --assignee <SP_ID> --role "Infoblox UDDI - DNS Resolve
 
 const cloudForwardingFull = {
   id: 'cloudForwardingFull',
+  product: 'ddi',
   name: 'Cloud Forwarding - Full Management',
   question: 'Manage Azure DNS Private Resolvers?',
   subQuestion: 'Full management',
@@ -400,13 +480,10 @@ const cloudForwardingFull = {
       'Microsoft.Network/dnsResolvers/read',
       'Microsoft.Network/dnsResolvers/write',
       'Microsoft.Network/dnsResolvers/delete',
-      'Microsoft.Network/dnsResolvers/join/action',
-      'Microsoft.Network/dnsResolvers/inboundEndpoints/read',
-      'Microsoft.Network/dnsResolvers/inboundEndpoints/write',
-      'Microsoft.Network/dnsResolvers/inboundEndpoints/delete',
       'Microsoft.Network/dnsResolvers/outboundEndpoints/read',
       'Microsoft.Network/dnsResolvers/outboundEndpoints/write',
       'Microsoft.Network/dnsResolvers/outboundEndpoints/delete',
+      'Microsoft.Network/dnsResolvers/outboundEndpoints/join/action',
       'Microsoft.Network/dnsForwardingRulesets/read',
       'Microsoft.Network/dnsForwardingRulesets/write',
       'Microsoft.Network/dnsForwardingRulesets/delete',
@@ -417,7 +494,10 @@ const cloudForwardingFull = {
       'Microsoft.Network/dnsForwardingRulesets/virtualNetworkLinks/read',
       'Microsoft.Network/dnsForwardingRulesets/virtualNetworkLinks/write',
       'Microsoft.Network/dnsForwardingRulesets/virtualNetworkLinks/delete',
-      'Microsoft.Network/virtualNetworks/join/action'
+      'Microsoft.Network/virtualNetworks/read',
+      'Microsoft.Network/virtualNetworks/listDnsResolvers/action',
+      'Microsoft.Network/virtualNetworks/subnets/read',
+      'Microsoft.Network/virtualNetworks/subnets/join/action'
     ],
     scope: 'subscription'
   },
@@ -425,13 +505,10 @@ const cloudForwardingFull = {
     'Microsoft.Network/dnsResolvers/read': 'List and read DNS Private Resolver instances',
     'Microsoft.Network/dnsResolvers/write': 'Create and update DNS Private Resolver instances',
     'Microsoft.Network/dnsResolvers/delete': 'Delete DNS Private Resolver instances',
-    'Microsoft.Network/dnsResolvers/join/action': 'Join DNS Private Resolvers to virtual networks',
-    'Microsoft.Network/dnsResolvers/inboundEndpoints/read': 'Read inbound endpoint configurations',
-    'Microsoft.Network/dnsResolvers/inboundEndpoints/write': 'Create and update inbound endpoints',
-    'Microsoft.Network/dnsResolvers/inboundEndpoints/delete': 'Delete inbound endpoints',
     'Microsoft.Network/dnsResolvers/outboundEndpoints/read': 'Read outbound endpoint configurations',
     'Microsoft.Network/dnsResolvers/outboundEndpoints/write': 'Create and update outbound endpoints',
     'Microsoft.Network/dnsResolvers/outboundEndpoints/delete': 'Delete outbound endpoints',
+    'Microsoft.Network/dnsResolvers/outboundEndpoints/join/action': 'Join outbound endpoints to forwarding rulesets',
     'Microsoft.Network/dnsForwardingRulesets/read': 'List and read DNS forwarding rulesets',
     'Microsoft.Network/dnsForwardingRulesets/write': 'Create and update DNS forwarding rulesets',
     'Microsoft.Network/dnsForwardingRulesets/delete': 'Delete DNS forwarding rulesets',
@@ -442,7 +519,10 @@ const cloudForwardingFull = {
     'Microsoft.Network/dnsForwardingRulesets/virtualNetworkLinks/read': 'Read VNet links associated with forwarding rulesets',
     'Microsoft.Network/dnsForwardingRulesets/virtualNetworkLinks/write': 'Create and update VNet links for forwarding rulesets',
     'Microsoft.Network/dnsForwardingRulesets/virtualNetworkLinks/delete': 'Delete VNet links from forwarding rulesets',
-    'Microsoft.Network/virtualNetworks/join/action': 'Allow resolvers to attach to virtual networks'
+    'Microsoft.Network/virtualNetworks/read': 'List virtual networks for resolver placement',
+    'Microsoft.Network/virtualNetworks/listDnsResolvers/action': 'List DNS resolvers associated with virtual networks',
+    'Microsoft.Network/virtualNetworks/subnets/read': 'Read subnet configurations for resolver endpoint placement',
+    'Microsoft.Network/virtualNetworks/subnets/join/action': 'Join resolver endpoints to virtual network subnets'
   },
   terraform: `data "azurerm_subscription" "current" {}
 
@@ -456,13 +536,10 @@ resource "azurerm_role_definition" "infoblox_uddi_dns_resolver_full" {
       "Microsoft.Network/dnsResolvers/read",
       "Microsoft.Network/dnsResolvers/write",
       "Microsoft.Network/dnsResolvers/delete",
-      "Microsoft.Network/dnsResolvers/join/action",
-      "Microsoft.Network/dnsResolvers/inboundEndpoints/read",
-      "Microsoft.Network/dnsResolvers/inboundEndpoints/write",
-      "Microsoft.Network/dnsResolvers/inboundEndpoints/delete",
       "Microsoft.Network/dnsResolvers/outboundEndpoints/read",
       "Microsoft.Network/dnsResolvers/outboundEndpoints/write",
       "Microsoft.Network/dnsResolvers/outboundEndpoints/delete",
+      "Microsoft.Network/dnsResolvers/outboundEndpoints/join/action",
       "Microsoft.Network/dnsForwardingRulesets/read",
       "Microsoft.Network/dnsForwardingRulesets/write",
       "Microsoft.Network/dnsForwardingRulesets/delete",
@@ -473,7 +550,10 @@ resource "azurerm_role_definition" "infoblox_uddi_dns_resolver_full" {
       "Microsoft.Network/dnsForwardingRulesets/virtualNetworkLinks/read",
       "Microsoft.Network/dnsForwardingRulesets/virtualNetworkLinks/write",
       "Microsoft.Network/dnsForwardingRulesets/virtualNetworkLinks/delete",
-      "Microsoft.Network/virtualNetworks/join/action"
+      "Microsoft.Network/virtualNetworks/read",
+      "Microsoft.Network/virtualNetworks/listDnsResolvers/action",
+      "Microsoft.Network/virtualNetworks/subnets/read",
+      "Microsoft.Network/virtualNetworks/subnets/join/action"
     ]
     not_actions = []
   }
@@ -491,13 +571,15 @@ resource "azurerm_role_assignment" "infoblox_uddi_dns_resolver_full" {
   setupGuide: `1. Navigate to Subscriptions > your subscription > Access control (IAM) > Roles.
 2. Click "Add custom role" and name it "Infoblox UDDI - DNS Resolver Full Management".
 3. Under Permissions, click "Add permissions" and add all 21 actions:
-   - Microsoft.Network/dnsResolvers/read, write, delete, join/action
-   - Microsoft.Network/dnsResolvers/inboundEndpoints/read, write, delete
-   - Microsoft.Network/dnsResolvers/outboundEndpoints/read, write, delete
+   - Microsoft.Network/dnsResolvers/read, write, delete
+   - Microsoft.Network/dnsResolvers/outboundEndpoints/read, write, delete, join/action
    - Microsoft.Network/dnsForwardingRulesets/read, write, delete, join/action
    - Microsoft.Network/dnsForwardingRulesets/forwardingRules/read, write, delete
    - Microsoft.Network/dnsForwardingRulesets/virtualNetworkLinks/read, write, delete
-   - Microsoft.Network/virtualNetworks/join/action
+   - Microsoft.Network/virtualNetworks/read
+   - Microsoft.Network/virtualNetworks/listDnsResolvers/action
+   - Microsoft.Network/virtualNetworks/subnets/read
+   - Microsoft.Network/virtualNetworks/subnets/join/action
 4. Set the assignable scope to the target subscription.
 5. Create the custom role.
 6. Go back to Access control (IAM) > Add role assignment.
@@ -511,13 +593,10 @@ az role definition create --role-definition '{
     "Microsoft.Network/dnsResolvers/read",
     "Microsoft.Network/dnsResolvers/write",
     "Microsoft.Network/dnsResolvers/delete",
-    "Microsoft.Network/dnsResolvers/join/action",
-    "Microsoft.Network/dnsResolvers/inboundEndpoints/read",
-    "Microsoft.Network/dnsResolvers/inboundEndpoints/write",
-    "Microsoft.Network/dnsResolvers/inboundEndpoints/delete",
     "Microsoft.Network/dnsResolvers/outboundEndpoints/read",
     "Microsoft.Network/dnsResolvers/outboundEndpoints/write",
     "Microsoft.Network/dnsResolvers/outboundEndpoints/delete",
+    "Microsoft.Network/dnsResolvers/outboundEndpoints/join/action",
     "Microsoft.Network/dnsForwardingRulesets/read",
     "Microsoft.Network/dnsForwardingRulesets/write",
     "Microsoft.Network/dnsForwardingRulesets/delete",
@@ -528,7 +607,10 @@ az role definition create --role-definition '{
     "Microsoft.Network/dnsForwardingRulesets/virtualNetworkLinks/read",
     "Microsoft.Network/dnsForwardingRulesets/virtualNetworkLinks/write",
     "Microsoft.Network/dnsForwardingRulesets/virtualNetworkLinks/delete",
-    "Microsoft.Network/virtualNetworks/join/action"
+    "Microsoft.Network/virtualNetworks/read",
+    "Microsoft.Network/virtualNetworks/listDnsResolvers/action",
+    "Microsoft.Network/virtualNetworks/subnets/read",
+    "Microsoft.Network/virtualNetworks/subnets/join/action"
   ],
   "AssignableScopes": ["/subscriptions/<SUBSCRIPTION_ID>"]
 }'
@@ -538,6 +620,7 @@ az role assignment create --assignee <SP_ID> --role "Infoblox UDDI - DNS Resolve
 
 const multiSubscription = {
   id: 'multiSubscription',
+  product: 'both',
   name: 'Multi-Subscription',
   question: 'Discover across multiple subscriptions?',
   guidance: true,

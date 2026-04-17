@@ -105,10 +105,13 @@ describe('getAzureCustomRoles', () => {
     assert.ok(perms.includes('Microsoft.Compute/virtualMachines/read'), 'should have VM read');
     assert.ok(perms.includes('Microsoft.Network/dnsZones/read'), 'should have DNS zone read');
     assert.ok(perms.includes('Microsoft.Resources/subscriptions/resourceGroups/read'), 'should have RG read');
+    assert.ok(perms.includes('Microsoft.Storage/storageAccounts/read'), 'should have Storage read');
+    assert.ok(perms.includes('Microsoft.Compute/virtualMachineScaleSets/read'), 'should have VMSS read');
+    assert.ok(perms.includes('Microsoft.Network/applicationGateways/read'), 'should have App Gateway read');
+    assert.ok(perms.includes('Microsoft.Insights/metrics/read'), 'should have metrics read');
     // Should NOT include unrelated services
     assert.ok(!perms.some(p => p.startsWith('Microsoft.KeyVault')), 'should not have KeyVault');
     assert.ok(!perms.some(p => p.startsWith('Microsoft.Sql')), 'should not have SQL');
-    assert.ok(!perms.some(p => p.startsWith('Microsoft.Storage')), 'should not have Storage');
   });
 });
 
@@ -159,7 +162,9 @@ describe('generateAzurePolicy', () => {
 
   it('includes 21 permissions for cloud forwarding full', () => {
     const result = generateAzurePolicy(['cloudForwardingFull']);
-    assert.ok(result.includes('Microsoft.Network/virtualNetworks/join/action'), 'should have VNet join');
+    assert.ok(result.includes('Microsoft.Network/virtualNetworks/subnets/join/action'), 'should have subnets join');
+    assert.ok(result.includes('Microsoft.Network/dnsResolvers/outboundEndpoints/join/action'), 'should have outbound join');
+    assert.ok(!result.includes('Microsoft.Network/dnsResolvers/inboundEndpoints/read'), 'should NOT have inbound read');
     assert.ok(result.includes('az role definition create'), 'should have role definition');
   });
 
