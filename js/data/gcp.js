@@ -13,6 +13,7 @@
 
 const assetDiscovery = {
   id: 'assetDiscovery',
+  product: 'assetInsight',
   name: 'Asset Discovery',
   question: 'Discover VMs, disks, networking resources?',
   predefinedRoles: [],
@@ -41,7 +42,23 @@ const assetDiscovery = {
     'compute.globalForwardingRules.get',
     'compute.zones.list',
     'compute.regions.list',
-    'compute.projects.get'
+    'compute.projects.get',
+    'compute.backendBuckets.list',
+    'compute.backendServices.list',
+    'compute.healthChecks.list',
+    'compute.instanceGroups.list',
+    'compute.networkEndpointGroups.list',
+    'compute.sslCertificates.list',
+    'compute.targetHttpProxies.list',
+    'compute.targetHttpsProxies.list',
+    'compute.targetPools.list',
+    'compute.targetSslProxies.list',
+    'compute.targetTcpProxies.list',
+    'compute.targetVpnGateways.list',
+    'compute.urlMaps.list',
+    'compute.vpnGateways.list',
+    'compute.vpnTunnels.list',
+    'resourcemanager.projects.get'
   ],
   rationale: {
     'compute.instances.list': 'Enumerate VM instances for asset inventory',
@@ -68,7 +85,23 @@ const assetDiscovery = {
     'compute.globalForwardingRules.get': 'Retrieve global forwarding rule target proxy configuration',
     'compute.zones.list': 'Enumerate available zones for resource placement context',
     'compute.regions.list': 'Enumerate available regions for multi-region discovery',
-    'compute.projects.get': 'Retrieve project-level compute quotas and metadata'
+    'compute.projects.get': 'Retrieve project-level compute quotas and metadata',
+    'compute.backendBuckets.list': 'Enumerate backend buckets for load balancer discovery',
+    'compute.backendServices.list': 'Enumerate backend services for load balancer topology',
+    'compute.healthChecks.list': 'List health check configurations for load balancers',
+    'compute.instanceGroups.list': 'Enumerate instance groups for scaling and load balancing',
+    'compute.networkEndpointGroups.list': 'List network endpoint groups for serverless load balancing',
+    'compute.sslCertificates.list': 'Enumerate SSL certificates for HTTPS load balancers',
+    'compute.targetHttpProxies.list': 'List HTTP proxy targets for load balancer routing',
+    'compute.targetHttpsProxies.list': 'List HTTPS proxy targets for load balancer routing',
+    'compute.targetPools.list': 'Enumerate target pools for network load balancers',
+    'compute.targetSslProxies.list': 'List SSL proxy targets for load balancer routing',
+    'compute.targetTcpProxies.list': 'List TCP proxy targets for load balancer routing',
+    'compute.targetVpnGateways.list': 'Enumerate classic VPN gateway targets',
+    'compute.urlMaps.list': 'List URL maps for HTTP(S) load balancer routing rules',
+    'compute.vpnGateways.list': 'Enumerate HA VPN gateways',
+    'compute.vpnTunnels.list': 'List VPN tunnels for site-to-site connectivity',
+    'resourcemanager.projects.get': 'Retrieve project metadata and labels'
   },
   terraform: `resource "google_project_iam_custom_role" "infoblox_uddi_asset_discovery" {
   project     = var.project_id
@@ -100,7 +133,23 @@ const assetDiscovery = {
     "compute.globalForwardingRules.get",
     "compute.zones.list",
     "compute.regions.list",
-    "compute.projects.get"
+    "compute.projects.get",
+    "compute.backendBuckets.list",
+    "compute.backendServices.list",
+    "compute.healthChecks.list",
+    "compute.instanceGroups.list",
+    "compute.networkEndpointGroups.list",
+    "compute.sslCertificates.list",
+    "compute.targetHttpProxies.list",
+    "compute.targetHttpsProxies.list",
+    "compute.targetPools.list",
+    "compute.targetSslProxies.list",
+    "compute.targetTcpProxies.list",
+    "compute.targetVpnGateways.list",
+    "compute.urlMaps.list",
+    "compute.vpnGateways.list",
+    "compute.vpnTunnels.list",
+    "resourcemanager.projects.get"
   ]
 }
 
@@ -114,7 +163,7 @@ resource "google_project_iam_member" "infoblox_uddi_asset_discovery" {
 3. Navigate to IAM & Admin > Roles.
 4. Click "Create Role".
 5. Name: "Infoblox UDDI - Asset Discovery", ID: "infobloxUddiAssetDiscovery".
-6. Click "Add Permissions" and add all 25 compute permissions:
+6. Click "Add Permissions" and add all 41 permissions:
    - compute.instances.list, compute.instances.get
    - compute.disks.list, compute.disks.get
    - compute.networks.list, compute.networks.get
@@ -127,6 +176,14 @@ resource "google_project_iam_member" "infoblox_uddi_asset_discovery" {
    - compute.globalAddresses.list, compute.globalAddresses.get
    - compute.globalForwardingRules.list, compute.globalForwardingRules.get
    - compute.zones.list, compute.regions.list, compute.projects.get
+   - compute.backendBuckets.list, compute.backendServices.list
+   - compute.healthChecks.list, compute.instanceGroups.list
+   - compute.networkEndpointGroups.list, compute.sslCertificates.list
+   - compute.targetHttpProxies.list, compute.targetHttpsProxies.list
+   - compute.targetPools.list, compute.targetSslProxies.list
+   - compute.targetTcpProxies.list, compute.targetVpnGateways.list
+   - compute.urlMaps.list, compute.vpnGateways.list, compute.vpnTunnels.list
+   - resourcemanager.projects.get
 7. Click "Create".
 8. Navigate to IAM & Admin > IAM.
 9. Click "Grant Access", add the service account, and assign the custom role.
@@ -135,7 +192,7 @@ Alternatively, use gcloud CLI:
 gcloud iam roles create infobloxUddiAssetDiscovery \\
   --project=<PROJECT_ID> \\
   --title="Infoblox UDDI - Asset Discovery" \\
-  --permissions="compute.instances.list,compute.instances.get,compute.disks.list,compute.disks.get,compute.networks.list,compute.networks.get,compute.subnetworks.list,compute.subnetworks.get,compute.addresses.list,compute.addresses.get,compute.firewalls.list,compute.firewalls.get,compute.routes.list,compute.routes.get,compute.routers.list,compute.routers.get,compute.forwardingRules.list,compute.forwardingRules.get,compute.globalAddresses.list,compute.globalAddresses.get,compute.globalForwardingRules.list,compute.globalForwardingRules.get,compute.zones.list,compute.regions.list,compute.projects.get"
+  --permissions="compute.instances.list,compute.instances.get,compute.disks.list,compute.disks.get,compute.networks.list,compute.networks.get,compute.subnetworks.list,compute.subnetworks.get,compute.addresses.list,compute.addresses.get,compute.firewalls.list,compute.firewalls.get,compute.routes.list,compute.routes.get,compute.routers.list,compute.routers.get,compute.forwardingRules.list,compute.forwardingRules.get,compute.globalAddresses.list,compute.globalAddresses.get,compute.globalForwardingRules.list,compute.globalForwardingRules.get,compute.zones.list,compute.regions.list,compute.projects.get,compute.backendBuckets.list,compute.backendServices.list,compute.healthChecks.list,compute.instanceGroups.list,compute.networkEndpointGroups.list,compute.sslCertificates.list,compute.targetHttpProxies.list,compute.targetHttpsProxies.list,compute.targetPools.list,compute.targetSslProxies.list,compute.targetTcpProxies.list,compute.targetVpnGateways.list,compute.urlMaps.list,compute.vpnGateways.list,compute.vpnTunnels.list,resourcemanager.projects.get"
 
 gcloud projects add-iam-policy-binding <PROJECT_ID> \\
   --member="serviceAccount:<SA_EMAIL>" \\
@@ -144,16 +201,19 @@ gcloud projects add-iam-policy-binding <PROJECT_ID> \\
 
 const storageBuckets = {
   id: 'storageBuckets',
+  product: 'assetInsight',
   name: 'Storage Buckets',
   question: 'Discover storage buckets and IAM policies?',
   predefinedRoles: [],
   customPermissions: [
     'storage.buckets.list',
-    'storage.buckets.getIamPolicy'
+    'storage.buckets.getIamPolicy',
+    'storage.objects.list'
   ],
   rationale: {
     'storage.buckets.list': 'Enumerate all Cloud Storage buckets in the project',
-    'storage.buckets.getIamPolicy': 'Read bucket-level IAM policies for access analysis'
+    'storage.buckets.getIamPolicy': 'Read bucket-level IAM policies for access analysis',
+    'storage.objects.list': 'Enumerate objects within storage buckets for inventory'
   },
   terraform: `resource "google_project_iam_custom_role" "infoblox_uddi_storage_discovery" {
   project     = var.project_id
@@ -162,7 +222,8 @@ const storageBuckets = {
   description = "Infoblox Universal DDI - Storage bucket discovery permissions"
   permissions = [
     "storage.buckets.list",
-    "storage.buckets.getIamPolicy"
+    "storage.buckets.getIamPolicy",
+    "storage.objects.list"
   ]
 }
 
@@ -177,6 +238,7 @@ resource "google_project_iam_member" "infoblox_uddi_storage_discovery" {
 4. Click "Add Permissions" and add:
    - storage.buckets.list
    - storage.buckets.getIamPolicy
+   - storage.objects.list
 5. Click "Create".
 6. Navigate to IAM & Admin > IAM.
 7. Click "Grant Access", add the service account, and assign the custom role.
@@ -185,7 +247,7 @@ Alternatively, use gcloud CLI:
 gcloud iam roles create infobloxUddiStorageDiscovery \\
   --project=<PROJECT_ID> \\
   --title="Infoblox UDDI - Storage Discovery" \\
-  --permissions="storage.buckets.list,storage.buckets.getIamPolicy"
+  --permissions="storage.buckets.list,storage.buckets.getIamPolicy,storage.objects.list"
 
 gcloud projects add-iam-policy-binding <PROJECT_ID> \\
   --member="serviceAccount:<SA_EMAIL>" \\
@@ -194,6 +256,7 @@ gcloud projects add-iam-policy-binding <PROJECT_ID> \\
 
 const dnsReadOnly = {
   id: 'dnsReadOnly',
+  product: 'ddi',
   name: 'DNS - Read-Only',
   question: 'Sync Cloud DNS zones?',
   subQuestion: 'Read-only',
@@ -262,6 +325,7 @@ gcloud projects add-iam-policy-binding <PROJECT_ID> \\
 
 const dnsReadWrite = {
   id: 'dnsReadWrite',
+  product: 'ddi',
   name: 'DNS - Read-Write',
   question: 'Sync Cloud DNS zones?',
   subQuestion: 'Read-write (bidirectional)',
@@ -358,6 +422,7 @@ gcloud projects add-iam-policy-binding <PROJECT_ID> \\
 
 const cloudForwardingInbound = {
   id: 'cloudForwardingInbound',
+  product: 'ddi',
   name: 'Cloud Forwarding - Inbound',
   question: 'Manage DNS forwarding?',
   subQuestion: 'Inbound',
@@ -435,6 +500,7 @@ gcloud projects add-iam-policy-binding <PROJECT_ID> \\
 
 const cloudForwardingOutbound = {
   id: 'cloudForwardingOutbound',
+  product: 'ddi',
   name: 'Cloud Forwarding - Outbound',
   question: 'Manage DNS forwarding?',
   subQuestion: 'Outbound',
@@ -529,6 +595,7 @@ gcloud projects add-iam-policy-binding <PROJECT_ID> \\
 
 const internalRanges = {
   id: 'internalRanges',
+  product: 'ddi',
   name: 'Internal Ranges',
   question: 'Manage GCP Internal Ranges (IPAM)?',
   predefinedRoles: [],
@@ -611,8 +678,68 @@ gcloud projects add-iam-policy-binding <PROJECT_ID> \\
   --role="projects/<PROJECT_ID>/roles/infobloxUddiInternalRanges"`
 };
 
+const monitoringStats = {
+  id: 'monitoringStats',
+  name: 'Monitoring Stats',
+  product: 'assetInsight',
+  question: 'Discover VM monitoring metrics and alerts?',
+  predefinedRoles: [],
+  customPermissions: [
+    'monitoring.alertPolicies.list',
+    'monitoring.groups.list',
+    'monitoring.metricDescriptors.list',
+    'monitoring.timeSeries.list'
+  ],
+  rationale: {
+    'monitoring.alertPolicies.list': 'Enumerate monitoring alert policies for inventory',
+    'monitoring.groups.list': 'List monitoring groups for resource grouping',
+    'monitoring.metricDescriptors.list': 'Enumerate available metric types for VM monitoring',
+    'monitoring.timeSeries.list': 'Read time series data for VM monitoring stats'
+  },
+  terraform: `resource "google_project_iam_custom_role" "infoblox_uddi_monitoring" {
+  project     = var.project_id
+  role_id     = "infobloxUddiMonitoring"
+  title       = "Infoblox UDDI - Monitoring Stats"
+  description = "Infoblox Universal DDI - Monitoring discovery permissions"
+  permissions = [
+    "monitoring.alertPolicies.list",
+    "monitoring.groups.list",
+    "monitoring.metricDescriptors.list",
+    "monitoring.timeSeries.list"
+  ]
+}
+
+resource "google_project_iam_member" "infoblox_uddi_monitoring" {
+  project = var.project_id
+  role    = google_project_iam_custom_role.infoblox_uddi_monitoring.id
+  member  = "serviceAccount:\${var.service_account_email}"
+}`,
+  setupGuide: `1. Navigate to IAM & Admin > Roles in the GCP Console.
+2. Click "Create Role".
+3. Name: "Infoblox UDDI - Monitoring Stats", ID: "infobloxUddiMonitoring".
+4. Click "Add Permissions" and add:
+   - monitoring.alertPolicies.list
+   - monitoring.groups.list
+   - monitoring.metricDescriptors.list
+   - monitoring.timeSeries.list
+5. Click "Create".
+6. Navigate to IAM & Admin > IAM.
+7. Click "Grant Access", add the service account, and assign the custom role.
+
+Alternatively, use gcloud CLI:
+gcloud iam roles create infobloxUddiMonitoring \\
+  --project=<PROJECT_ID> \\
+  --title="Infoblox UDDI - Monitoring Stats" \\
+  --permissions="monitoring.alertPolicies.list,monitoring.groups.list,monitoring.metricDescriptors.list,monitoring.timeSeries.list"
+
+gcloud projects add-iam-policy-binding <PROJECT_ID> \\
+  --member="serviceAccount:<SA_EMAIL>" \\
+  --role="projects/<PROJECT_ID>/roles/infobloxUddiMonitoring"`
+};
+
 const multiProjectOrg = {
   id: 'multiProjectOrg',
+  product: 'both',
   name: 'Multi-Project / Organization',
   question: 'Discover across projects/folders/org?',
   predefinedRoles: [
@@ -721,6 +848,7 @@ export const GCP_FEATURES = {
   cloudForwardingInbound,
   cloudForwardingOutbound,
   internalRanges,
+  monitoringStats,
   multiProjectOrg
 };
 

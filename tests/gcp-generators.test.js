@@ -76,10 +76,12 @@ describe('getGcpCustomPermissions', () => {
     assert.deepStrictEqual(result, []);
   });
 
-  it('returns exactly 2 permissions for storageBuckets', () => {
+  it('returns exactly 3 permissions for storageBuckets', () => {
     const result = getGcpCustomPermissions(['storageBuckets']);
-    assert.equal(result.length, 2);
-    assert.deepStrictEqual(result, ['storage.buckets.getIamPolicy', 'storage.buckets.list']);
+    assert.equal(result.length, 3);
+    assert.ok(result.includes('storage.buckets.getIamPolicy'));
+    assert.ok(result.includes('storage.buckets.list'));
+    assert.ok(result.includes('storage.objects.list'));
   });
 
   it('returns exactly 10 permissions for cloudForwardingInbound', () => {
@@ -97,9 +99,9 @@ describe('getGcpCustomPermissions', () => {
     assert.equal(result.length, 22);
   });
 
-  it('returns exactly 25 permissions for assetDiscovery', () => {
+  it('returns exactly 41 permissions for assetDiscovery', () => {
     const result = getGcpCustomPermissions(['assetDiscovery']);
-    assert.equal(result.length, 25);
+    assert.equal(result.length, 41);
   });
 
   it('returns exactly 13 permissions for internalRanges', () => {
@@ -120,6 +122,18 @@ describe('getGcpCustomPermissions', () => {
     assert.ok(result.includes('dns.managedZones.create'));
     assert.ok(result.includes('dns.resourceRecordSets.delete'));
     assert.ok(result.includes('dns.changes.create'));
+  });
+
+  it('returns exactly 4 permissions for monitoringStats', () => {
+    const result = getGcpCustomPermissions(['monitoringStats']);
+    assert.equal(result.length, 4);
+    assert.ok(result.includes('monitoring.timeSeries.list'));
+    assert.ok(result.includes('monitoring.alertPolicies.list'));
+  });
+
+  it('monitoringStats feature exists in GCP_FEATURES', () => {
+    assert.ok(GCP_FEATURES.monitoringStats, 'monitoringStats should exist');
+    assert.equal(GCP_FEATURES.monitoringStats.product, 'assetInsight');
   });
 
   it('dnsReadWrite permissions include all dnsReadOnly permissions plus write actions', () => {
