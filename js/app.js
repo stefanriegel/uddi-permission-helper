@@ -2,8 +2,8 @@
  * Entry point — wires event listeners to state and UI modules.
  */
 
-import { setActiveProvider, getActiveProvider, hasProviderData, setFeature, getFeatures, setSelectionMode, getSelectionMode } from './state.js';
-import { updateProviderCards, updateWorkspace, renderWizard, renderAdvanced } from './ui.js';
+import { setActiveProvider, getActiveProvider, hasProviderData, setFeature, getFeatures, setSelectionMode, getSelectionMode, getSelectedProducts, toggleProduct, hasProductSelected } from './state.js';
+import { updateProviderCards, updateWorkspace, renderWizard, renderAdvanced, updateProductCards, setProviderSelectorVisible } from './ui.js';
 import { getQuestionsForProvider } from './questions.js';
 import { renderOutput, updateBadge, getActiveTabContent, getActiveTabId, getDownloadFilename, setButtonsDisabled } from './output.js';
 
@@ -43,7 +43,7 @@ function renderCurrentMode() {
   if (!providerId) return;
 
   const mode = getSelectionMode();
-  const questions = getQuestionsForProvider(providerId);
+  const questions = getQuestionsForProvider(providerId, getSelectedProducts());
   const features = getFeatures(providerId);
 
   if (mode === 'wizard') {
@@ -62,6 +62,29 @@ document.addEventListener('DOMContentLoaded', () => {
   if (workspace) {
     workspace.classList.add('workspace--hidden');
   }
+
+  // Hide provider selector on init (no product selected yet)
+  setProviderSelectorVisible(false);
+
+  // Product card click handler
+  const productCards = document.querySelectorAll('.product-card[data-product]');
+  productCards.forEach((card) => {
+    card.addEventListener('click', () => {
+      const productId = card.dataset.product;
+      toggleProduct(productId);
+
+      const selected = getSelectedProducts();
+      updateProductCards(selected);
+      setProviderSelectorVisible(selected.length > 0);
+
+      // Re-render workspace if provider active (features may have changed)
+      if (getActiveProvider()) {
+        renderCurrentMode();
+        refreshOutput();
+        updateProviderCards(getActiveProvider(), hasProviderData);
+      }
+    });
+  });
 
   // Provider card click handler
   cards.forEach((card) => {

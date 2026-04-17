@@ -42,6 +42,35 @@ export function updateProviderCards(activeProvider, hasDataFn) {
 }
 
 /**
+ * Update product card visual states.
+ * @param {string[]} selectedProducts - Array of selected product IDs.
+ */
+export function updateProductCards(selectedProducts) {
+  const cards = document.querySelectorAll('.product-card[data-product]');
+  cards.forEach((card) => {
+    const productId = card.dataset.product;
+    if (selectedProducts.includes(productId)) {
+      card.classList.add('product-card--selected');
+      card.setAttribute('aria-pressed', 'true');
+    } else {
+      card.classList.remove('product-card--selected');
+      card.setAttribute('aria-pressed', 'false');
+    }
+  });
+}
+
+/**
+ * Show or hide the provider selector section.
+ * @param {boolean} visible
+ */
+export function setProviderSelectorVisible(visible) {
+  const section = document.getElementById('provider-selector');
+  if (section) {
+    section.classList.toggle('provider-selector--hidden', !visible);
+  }
+}
+
+/**
  * Update the workspace panel content based on the active provider.
  * Shows workspace header + content when provider selected, hides empty state.
  * @param {string|null} activeProvider - The currently active provider ID, or null to show empty state.
