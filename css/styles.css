@@ -162,6 +162,12 @@ input {
   font-size: var(--text-heading);
   font-weight: var(--weight-semibold);
   color: var(--color-text);
+  margin: 0 0 var(--space-sm) 0;
+}
+
+.section-hint {
+  font-size: var(--text-label);
+  color: var(--color-text-secondary);
   margin: 0 0 var(--space-lg) 0;
 }
 
