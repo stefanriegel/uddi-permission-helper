@@ -23,13 +23,13 @@ describe('getAzureRoles', () => {
     assert.deepStrictEqual(result, []);
   });
 
-  it('returns empty roles for ipamAssetDiscovery (uses custom role)', () => {
-    const result = getAzureRoles(['ipamAssetDiscovery']);
-    assert.equal(result.length, 0, 'ipamAssetDiscovery uses custom role, no built-in roles');
+  it('returns empty roles for vnetNetworkDiscovery (uses custom role)', () => {
+    const result = getAzureRoles(['vnetNetworkDiscovery']);
+    assert.equal(result.length, 0, 'vnetNetworkDiscovery uses custom role, no built-in roles');
   });
 
-  it('returns empty roles for IPAM + public DNS read-only (both use custom role)', () => {
-    const result = getAzureRoles(['ipamAssetDiscovery', 'publicDnsReadOnly']);
+  it('returns empty roles for vnetNetworkDiscovery + publicDnsReadOnly (both use custom role)', () => {
+    const result = getAzureRoles(['vnetNetworkDiscovery', 'publicDnsReadOnly']);
     assert.equal(result.length, 0, 'both features use custom role, no built-in roles');
   });
 
@@ -70,21 +70,42 @@ describe('getAzureCustomRoles', () => {
     assert.deepStrictEqual(result, []);
   });
 
-  it('returns Discovery Reader for ipamAssetDiscovery', () => {
-    const result = getAzureCustomRoles(['ipamAssetDiscovery']);
+  it('returns Network Discovery custom role for vnetNetworkDiscovery', () => {
+    const result = getAzureCustomRoles(['vnetNetworkDiscovery']);
     assert.equal(result.length, 1);
-    assert.equal(result[0].name, 'Infoblox UDDI - Discovery Reader');
+    assert.equal(result[0].name, 'Infoblox UDDI - Network Discovery');
   });
 
-  it('deduplicates Discovery Reader across IPAM + public DNS read-only', () => {
-    const result = getAzureCustomRoles(['ipamAssetDiscovery', 'publicDnsReadOnly']);
-    assert.equal(result.length, 1, 'should deduplicate shared custom role');
-    assert.equal(result[0].name, 'Infoblox UDDI - Discovery Reader');
+  it('returns Compute Discovery custom role', () => {
+    const result = getAzureCustomRoles(['computeDiscovery']);
+    assert.equal(result.length, 1);
+    assert.equal(result[0].name, 'Infoblox UDDI - Compute Discovery');
+    assert.equal(result[0].permissions.length, 3);
   });
 
-  it('deduplicates Discovery Reader across all three features that share it', () => {
-    const result = getAzureCustomRoles(['ipamAssetDiscovery', 'publicDnsReadOnly', 'publicDnsReadWrite']);
-    assert.equal(result.length, 1, 'should deduplicate to single Discovery Reader');
+  it('returns Storage Discovery custom role', () => {
+    const result = getAzureCustomRoles(['storageDiscovery']);
+    assert.equal(result.length, 1);
+    assert.equal(result[0].name, 'Infoblox UDDI - Storage Discovery');
+    assert.equal(result[0].permissions.length, 2);
+  });
+
+  it('returns Monitoring Stats custom role', () => {
+    const result = getAzureCustomRoles(['azureMonitoringStats']);
+    assert.equal(result.length, 1);
+    assert.equal(result[0].name, 'Infoblox UDDI - Monitoring Stats');
+    assert.equal(result[0].permissions.length, 1);
+  });
+
+  it('returns 2 custom roles for vnetNetworkDiscovery + publicDnsReadOnly', () => {
+    const result = getAzureCustomRoles(['vnetNetworkDiscovery', 'publicDnsReadOnly']);
+    assert.equal(result.length, 2, 'should have Network Discovery + DNS Reader');
+  });
+
+  it('deduplicates DNS Reader across publicDnsReadOnly + publicDnsReadWrite', () => {
+    const result = getAzureCustomRoles(['publicDnsReadOnly', 'publicDnsReadWrite']);
+    assert.equal(result.length, 1, 'should deduplicate DNS Reader');
+    assert.equal(result[0].name, 'Infoblox UDDI - DNS Reader');
   });
 
   it('returns all unique custom roles when all features selected', () => {
@@ -92,26 +113,25 @@ describe('getAzureCustomRoles', () => {
     const result = getAzureCustomRoles(allIds);
     const names = result.map(r => r.name).sort();
     assert.deepStrictEqual(names, [
+      'Infoblox UDDI - Compute Discovery',
+      'Infoblox UDDI - DNS Reader',
       'Infoblox UDDI - DNS Resolver Discovery',
       'Infoblox UDDI - DNS Resolver Full Management',
-      'Infoblox UDDI - Discovery Reader'
+      'Infoblox UDDI - Monitoring Stats',
+      'Infoblox UDDI - Network Discovery',
+      'Infoblox UDDI - Storage Discovery'
     ]);
   });
 
-  it('Discovery Reader has expected permissions', () => {
-    const result = getAzureCustomRoles(['ipamAssetDiscovery']);
+  it('Network Discovery has expected permissions', () => {
+    const result = getAzureCustomRoles(['vnetNetworkDiscovery']);
     const perms = result[0].permissions;
     assert.ok(perms.includes('Microsoft.Network/virtualNetworks/read'), 'should have VNet read');
-    assert.ok(perms.includes('Microsoft.Compute/virtualMachines/read'), 'should have VM read');
-    assert.ok(perms.includes('Microsoft.Network/dnsZones/read'), 'should have DNS zone read');
-    assert.ok(perms.includes('Microsoft.Resources/subscriptions/resourceGroups/read'), 'should have RG read');
-    assert.ok(perms.includes('Microsoft.Storage/storageAccounts/read'), 'should have Storage read');
-    assert.ok(perms.includes('Microsoft.Compute/virtualMachineScaleSets/read'), 'should have VMSS read');
+    assert.ok(perms.includes('Microsoft.Network/loadBalancers/read'), 'should have LB read');
     assert.ok(perms.includes('Microsoft.Network/applicationGateways/read'), 'should have App Gateway read');
-    assert.ok(perms.includes('Microsoft.Insights/metrics/read'), 'should have metrics read');
-    // Should NOT include unrelated services
-    assert.ok(!perms.some(p => p.startsWith('Microsoft.KeyVault')), 'should not have KeyVault');
-    assert.ok(!perms.some(p => p.startsWith('Microsoft.Sql')), 'should not have SQL');
+    assert.ok(perms.includes('Microsoft.Management/managementGroups/read'), 'should have mgmt groups');
+    assert.ok(!perms.some(p => p.startsWith('Microsoft.Compute')), 'should not have Compute');
+    assert.ok(!perms.some(p => p.startsWith('Microsoft.Storage')), 'should not have Storage');
   });
 });
 
@@ -123,34 +143,34 @@ describe('generateAzurePolicy', () => {
     assert.equal(result, '');
   });
 
-  it('outputs custom role definition for IPAM', () => {
-    const result = generateAzurePolicy(['ipamAssetDiscovery']);
+  it('outputs custom role definition for vnetNetworkDiscovery', () => {
+    const result = generateAzurePolicy(['vnetNetworkDiscovery']);
     assert.ok(result.includes('az role definition create'), 'should have role definition create');
-    assert.ok(result.includes('Discovery Reader'), 'should reference Discovery Reader');
+    assert.ok(result.includes('Network Discovery'), 'should reference Network Discovery');
     assert.ok(result.includes('Microsoft.Network/virtualNetworks/read'), 'should have VNet read permission');
     assert.ok(result.includes('az role assignment create'), 'should have role assignment');
   });
 
-  it('outputs single custom role definition for IPAM + public DNS read-only', () => {
-    const result = generateAzurePolicy(['ipamAssetDiscovery', 'publicDnsReadOnly']);
+  it('outputs single custom role definition for vnetNetworkDiscovery + publicDnsReadOnly', () => {
+    const result = generateAzurePolicy(['vnetNetworkDiscovery', 'publicDnsReadOnly']);
     const roleDefCount = (result.match(/az role definition create/g) || []).length;
-    assert.equal(roleDefCount, 1, 'Discovery Reader should appear only once');
+    assert.equal(roleDefCount, 2, 'Network Discovery and DNS Reader are separate roles');
   });
 
-  it('outputs both custom Discovery Reader and DNS Zone Contributor for publicDnsReadWrite', () => {
+  it('outputs both custom DNS Reader and DNS Zone Contributor for publicDnsReadWrite', () => {
     const result = generateAzurePolicy(['publicDnsReadWrite']);
     assert.ok(result.includes('az role definition create'), 'should have custom role definition');
-    assert.ok(result.includes('Discovery Reader'), 'should have Discovery Reader');
+    assert.ok(result.includes('DNS Reader'), 'should have DNS Reader');
     assert.ok(result.includes('"DNS Zone Contributor"'), 'should have DNS Zone Contributor');
     // Should have 2 role assignment create commands: one for custom role, one for DNS Zone Contributor
     const assignCount = (result.match(/az role assignment create/g) || []).length;
     assert.equal(assignCount, 2, 'should have 2 role assignments (custom + built-in)');
   });
 
-  it('deduplicates Discovery Reader across IPAM + publicDnsReadOnly + publicDnsReadWrite', () => {
-    const result = generateAzurePolicy(['ipamAssetDiscovery', 'publicDnsReadOnly', 'publicDnsReadWrite']);
+  it('deduplicates DNS Reader across publicDnsReadOnly + publicDnsReadWrite', () => {
+    const result = generateAzurePolicy(['publicDnsReadOnly', 'publicDnsReadWrite']);
     const roleDefCount = (result.match(/az role definition create/g) || []).length;
-    assert.equal(roleDefCount, 1, 'only 1 Discovery Reader definition even with 3 features');
+    assert.equal(roleDefCount, 1, 'only 1 DNS Reader definition even with 2 features');
   });
 
   it('outputs custom role JSON for cloud forwarding discovery', () => {
@@ -185,21 +205,25 @@ describe('generateAzureTerraform', () => {
     assert.equal(result, '');
   });
 
-  it('outputs azurerm_role_definition for IPAM', () => {
-    const result = generateAzureTerraform(['ipamAssetDiscovery']);
+  it('outputs azurerm_role_definition for vnetNetworkDiscovery', () => {
+    const result = generateAzureTerraform(['vnetNetworkDiscovery']);
     assert.ok(result.includes('azurerm_role_definition'), 'should have role definition');
-    assert.ok(result.includes('Discovery Reader'), 'should reference Discovery Reader');
+    assert.ok(result.includes('Network Discovery'), 'should reference Network Discovery');
     assert.ok(result.includes('azurerm_role_assignment'), 'should have role assignment');
     assert.ok(result.includes('azurerm_subscription'), 'should have subscription data source');
     assert.ok(result.includes('azurerm_client_config'), 'should have client config data source');
   });
 
-  it('deduplicates Discovery Reader for IPAM + public DNS read-only', () => {
-    const result = generateAzureTerraform(['ipamAssetDiscovery', 'publicDnsReadOnly']);
+  it('outputs separate role definitions for vnetNetworkDiscovery + publicDnsReadOnly', () => {
+    const result = generateAzureTerraform(['vnetNetworkDiscovery', 'publicDnsReadOnly']);
     const resourceBlocks = result.match(/resource "azurerm_role_definition"/g);
-    assert.equal(resourceBlocks.length, 1, 'should have only one role definition for Discovery Reader');
-    const assignBlocks = result.match(/resource "azurerm_role_assignment"/g);
-    assert.equal(assignBlocks.length, 1, 'should have only one role assignment for Discovery Reader');
+    assert.equal(resourceBlocks.length, 2, 'should have separate role definitions for Network Discovery and DNS Reader');
+  });
+
+  it('deduplicates DNS Reader for publicDnsReadOnly + publicDnsReadWrite', () => {
+    const result = generateAzureTerraform(['publicDnsReadOnly', 'publicDnsReadWrite']);
+    const resourceBlocks = result.match(/resource "azurerm_role_definition"/g);
+    assert.equal(resourceBlocks.length, 1, 'should have only one role definition for DNS Reader');
   });
 
   it('outputs azurerm_role_definition for cloud forwarding', () => {
@@ -223,12 +247,12 @@ describe('generateAzureGuide', () => {
     assert.equal(result, '');
   });
 
-  it('returns numbered steps for IPAM with custom role', () => {
-    const guide = generateAzureGuide(['ipamAssetDiscovery']);
+  it('returns numbered steps for vnetNetworkDiscovery with custom role', () => {
+    const guide = generateAzureGuide(['vnetNetworkDiscovery']);
     assert.ok(guide.includes('1.'), 'should have step 1');
     assert.ok(guide.toLowerCase().includes('service principal'), 'should mention service principal');
     assert.ok(guide.toLowerCase().includes('custom role'), 'should mention custom role');
-    assert.ok(guide.toLowerCase().includes('discovery reader'), 'should mention Discovery Reader');
+    assert.ok(guide.toLowerCase().includes('network discovery'), 'should mention Network Discovery');
     assert.ok(guide.toLowerCase().includes('infoblox portal'), 'should end with Infoblox Portal');
   });
 
@@ -241,22 +265,22 @@ describe('generateAzureGuide', () => {
   });
 
   it('combines custom role and cloud forwarding steps', () => {
-    const guide = generateAzureGuide(['ipamAssetDiscovery', 'cloudForwardingDiscovery']);
+    const guide = generateAzureGuide(['vnetNetworkDiscovery', 'cloudForwardingDiscovery']);
     assert.ok(guide.includes('1.'), 'should have numbered steps');
-    assert.ok(guide.toLowerCase().includes('discovery reader'), 'should mention Discovery Reader');
+    assert.ok(guide.toLowerCase().includes('network discovery'), 'should mention Network Discovery');
     assert.ok(guide.toLowerCase().includes('dns resolver discovery'), 'should mention DNS Resolver custom role');
   });
 
   it('ends with Infoblox Portal configuration step', () => {
-    const guide = generateAzureGuide(['ipamAssetDiscovery']);
+    const guide = generateAzureGuide(['vnetNetworkDiscovery']);
     const lines = guide.trim().split('\n');
     const lastLine = lines[lines.length - 1].toLowerCase();
     assert.ok(lastLine.includes('infoblox portal'), 'last step should mention Infoblox Portal');
   });
 
-  it('deduplicates Discovery Reader in guide for IPAM + publicDnsReadOnly', () => {
-    const guide = generateAzureGuide(['ipamAssetDiscovery', 'publicDnsReadOnly']);
-    const customRoleMentions = (guide.match(/custom role named "Infoblox UDDI - Discovery Reader"/g) || []).length;
-    assert.equal(customRoleMentions, 1, 'should mention Discovery Reader creation only once');
+  it('deduplicates DNS Reader in guide for publicDnsReadOnly + publicDnsReadWrite', () => {
+    const guide = generateAzureGuide(['publicDnsReadOnly', 'publicDnsReadWrite']);
+    const customRoleMentions = (guide.match(/custom role named "Infoblox UDDI - DNS Reader"/g) || []).length;
+    assert.equal(customRoleMentions, 1, 'should mention DNS Reader creation only once');
   });
 });
