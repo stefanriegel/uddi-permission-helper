@@ -270,6 +270,56 @@ input {
   color: var(--color-text-secondary);
 }
 
+/* 5b. Product Cards
+   -------------------------------------------------------------------------- */
+
+.products {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-md);
+  margin-bottom: var(--space-xl);
+}
+
+.product-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-xs);
+  padding: var(--space-lg);
+  background: var(--color-surface);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  box-shadow: var(--shadow-card);
+  text-align: left;
+}
+
+.product-card:hover {
+  border-color: var(--color-border-hover);
+  box-shadow: var(--shadow-card-hover);
+}
+
+.product-card--selected {
+  border-color: var(--color-secondary);
+  box-shadow: 0 0 0 3px rgba(58, 143, 214, 0.15);
+}
+
+.product-card__name {
+  font-size: var(--text-heading);
+  font-weight: var(--weight-semibold);
+  color: var(--color-text);
+}
+
+.product-card__desc {
+  font-size: var(--text-label);
+  color: var(--color-text-secondary);
+}
+
+#provider-selector.provider-selector--hidden {
+  display: none;
+}
+
 /* 7. Workspace Panel
    -------------------------------------------------------------------------- */
 
@@ -764,5 +814,11 @@ input {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+  }
+}
+
+@media (max-width: 600px) {
+  .products {
+    grid-template-columns: 1fr;
   }
 }

@@ -23,8 +23,22 @@
 
   <main class="main" id="main-content">
 
-    <section aria-label="Cloud provider selection">
-      <h1 class="section-heading">Select Cloud Provider</h1>
+    <section aria-label="Product selection" id="product-selector">
+      <h1 class="section-heading">Select Product</h1>
+      <nav class="products" aria-label="Product selection">
+        <button class="product-card" type="button" data-product="ddi" aria-label="Select Universal DDI" aria-pressed="false">
+          <span class="product-card__name">Universal DDI</span>
+          <span class="product-card__desc">DNS management, IPAM, DHCP, cloud forwarding</span>
+        </button>
+        <button class="product-card" type="button" data-product="assetInsight" aria-label="Select Universal Asset Insight" aria-pressed="false">
+          <span class="product-card__name">Universal Asset Insight</span>
+          <span class="product-card__desc">Cloud infrastructure discovery and inventory</span>
+        </button>
+      </nav>
+    </section>
+
+    <section aria-label="Cloud provider selection" id="provider-selector">
+      <h2 class="section-heading">Select Cloud Provider</h2>
       <nav class="providers" aria-label="Cloud provider selection">
         <button class="provider-card provider-card--aws" type="button" data-provider="aws" aria-label="Select Amazon Web Services (AWS)" aria-pressed="false">
           <span class="provider-card__name">Amazon Web Services (AWS)</span>
@@ -55,7 +69,7 @@
       <div class="workspace__content" id="workspace-content">
         <!-- Wizard or advanced mode content rendered by JS -->
       </div>
-      <p class="workspace__empty">Select a cloud provider above to begin.</p>
+      <p class="workspace__empty">Select a product and cloud provider above to begin.</p>
     </section>
 
     <section class="output" aria-label="Policy output">
