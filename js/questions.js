@@ -41,9 +41,10 @@ const EXCLUSIVE_GROUPS = {
  * with sub-questions. Features with unique question strings become standalone questions.
  *
  * @param {string} providerId - One of 'aws', 'azure', 'gcp'.
+ * @param {string[]} selectedProducts - Optional array of selected product IDs to filter by.
  * @returns {Array<object>} Array of question objects for the wizard.
  */
-export function getQuestionsForProvider(providerId) {
+export function getQuestionsForProvider(providerId, selectedProducts) {
   const features = PROVIDER_FEATURES[providerId];
   if (!features) return [];
 
@@ -54,6 +55,13 @@ export function getQuestionsForProvider(providerId) {
   for (const [featureId, feature] of Object.entries(features)) {
     const questionText = feature.question;
     if (!questionText) continue;
+
+    // Product filtering: skip features that don't match selected products
+    if (selectedProducts && selectedProducts.length > 0 && feature.product) {
+      if (feature.product === 'ddi' && !selectedProducts.includes('ddi')) continue;
+      if (feature.product === 'assetInsight' && !selectedProducts.includes('assetInsight')) continue;
+      // 'both' always passes when any product is selected
+    }
 
     if (feature.subQuestion) {
       // This is a sub-feature — group under parent question
