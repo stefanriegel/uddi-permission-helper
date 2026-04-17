@@ -4,10 +4,12 @@
  */
 
 const VALID_PROVIDERS = ['aws', 'azure', 'gcp'];
+const VALID_PRODUCTS = ['ddi', 'assetInsight'];
 
 const state = {
   activeProvider: null,
   selectionMode: 'wizard',
+  selectedProducts: [],
   providers: {
     aws: { features: {} },
     azure: { features: {} },
@@ -109,6 +111,46 @@ export function setSelectionMode(mode) {
  */
 export function getSelectionMode() {
   return state.selectionMode;
+}
+
+/**
+ * Get the currently selected products.
+ * @returns {string[]} Array of selected product IDs.
+ */
+export function getSelectedProducts() {
+  return state.selectedProducts;
+}
+
+/**
+ * Toggle a product selection. If already selected, removes it.
+ * If not selected, adds it. Resets all provider feature selections
+ * when products change (features may appear/disappear).
+ * @param {string} productId - One of 'ddi' or 'assetInsight'.
+ * @returns {string[]} Updated selectedProducts array.
+ */
+export function toggleProduct(productId) {
+  if (!VALID_PRODUCTS.includes(productId)) {
+    return state.selectedProducts;
+  }
+  const idx = state.selectedProducts.indexOf(productId);
+  if (idx >= 0) {
+    state.selectedProducts.splice(idx, 1);
+  } else {
+    state.selectedProducts.push(productId);
+  }
+  // Reset all provider features when products change
+  for (const provider of VALID_PROVIDERS) {
+    state.providers[provider].features = {};
+  }
+  return state.selectedProducts;
+}
+
+/**
+ * Check if any product is selected.
+ * @returns {boolean}
+ */
+export function hasProductSelected() {
+  return state.selectedProducts.length > 0;
 }
 
 /**
