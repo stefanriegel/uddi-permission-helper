@@ -281,7 +281,7 @@ const privateDns = {
     { name: 'Private DNS Zone Contributor', builtIn: true, scope: 'subscription' }
   ],
   rationale: {
-    'Private DNS Zone Contributor': 'Manage private DNS zones and records for internal name resolution sync'
+    'Private DNS Zone Contributor': 'Write access to private DNS zones and records (required for bidirectional sync — discovery-only is covered by the Discovery Reader role)'
   },
   terraform: `data "azurerm_subscription" "current" {}
 
@@ -298,7 +298,7 @@ resource "azurerm_role_assignment" "infoblox_uddi_private_dns_zone_contributor" 
   setupGuide: `1. Navigate to Subscriptions > your subscription > Access control (IAM).
 2. Click "Add role assignment" and select the "Private DNS Zone Contributor" role.
 3. Assign it to the Infoblox Universal DDI service principal.
-4. This role allows managing private DNS zones and their records for internal name resolution sync.`
+4. This is a write role — required for bidirectional private DNS sync. For discovery-only, the Discovery Reader custom role is sufficient.`
 };
 
 const cloudForwardingDiscovery = {

@@ -51,17 +51,10 @@ function buildAnnotatedAwsPolicy(selectedIds) {
     }
   }
 
-  // Build annotated output
-  const actionLines = [];
-  for (let i = 0; i < actions.length; i++) {
-    const action = actions[i];
-    const rationale = rationaleMap[action];
-    const comma = i < actions.length - 1 ? ',' : '';
-    if (rationale) {
-      actionLines.push(`        // ${rationale}`);
-    }
-    actionLines.push(`        "${action}"${comma}`);
-  }
+  // Build valid JSON (no comments — JSON does not allow them)
+  const actionStrings = actions.map((a, i) =>
+    `        "${a}"` + (i < actions.length - 1 ? ',' : '')
+  );
 
   // Handle multiAccount policies info
   const hasMultiAccount = selectedIds.includes('multiAccount');
@@ -73,18 +66,27 @@ function buildAnnotatedAwsPolicy(selectedIds) {
       "Sid": "InfobloxUDDIPermissions",
       "Effect": "Allow",
       "Action": [
-${actionLines.join('\n')}
+${actionStrings.join('\n')}
       ],
       "Resource": "*"
     }
   ]
 }`;
 
+  // Append rationale as a separate reference section (not inside JSON)
+  const rationaleLines = [];
+  for (const action of actions) {
+    const rationale = rationaleMap[action];
+    if (rationale) {
+      rationaleLines.push(`  ${action} — ${rationale}`);
+    }
+  }
+  if (rationaleLines.length > 0) {
+    output += `\n\n/* Permission Rationale:\n${rationaleLines.join('\n')}\n*/`;
+  }
+
   if (hasMultiAccount) {
-    output += `\n\n// Multi-Account: Additional policies required
-// - Trust Policy: Allows Infoblox service to assume discovery role
-// - AWSOrganizationsReadOnlyAccess: Lists organization accounts
-// - STS AssumeRole: Permits assuming discovery role in sub-accounts`;
+    output += `\n\n/* Multi-Account: Additional policies required\n   - Trust Policy: Allows Infoblox service to assume discovery role\n   - AWSOrganizationsReadOnlyAccess: Lists organization accounts\n   - STS AssumeRole: Permits assuming discovery role in sub-accounts\n*/`;
   }
 
   return output;
@@ -114,24 +116,30 @@ function buildAnnotatedAzurePolicy(selectedIds) {
   // Insert rationale before each az command
   const lines = rawOutput.split('\n');
   const annotated = [];
+  let searchOffset = 0;
   for (const line of lines) {
-    // Before each az role assignment create line, find relevant rationale
+    // Before each az role assignment create line, find the role in THIS command block
     if (line.startsWith('az role assignment create')) {
-      // Try to extract role name from next lines
-      const roleMatch = rawOutput.substring(rawOutput.indexOf(line)).match(/--role\s+"([^"]+)"/);
+      const blockStart = rawOutput.indexOf(line, searchOffset);
+      const blockEnd = rawOutput.indexOf('\n\n', blockStart);
+      const block = rawOutput.substring(blockStart, blockEnd > blockStart ? blockEnd : rawOutput.length);
+      const roleMatch = block.match(/--role\s+"([^"]+)"/);
       if (roleMatch) {
         const roleName = roleMatch[1];
         if (rationaleMap[roleName]) {
           annotated.push(`# ${rationaleMap[roleName]}`);
         }
       }
+      searchOffset = blockStart + line.length;
     }
     // Before az role definition create, find the custom role name
     if (line.startsWith('az role definition create')) {
-      const nameMatch = rawOutput.substring(rawOutput.indexOf(line)).match(/"Name":\s*"([^"]+)"/);
+      const blockStart = rawOutput.indexOf(line, searchOffset);
+      const blockEnd = rawOutput.indexOf('\n\n', blockStart);
+      const block = rawOutput.substring(blockStart, blockEnd > blockStart ? blockEnd : rawOutput.length);
+      const nameMatch = block.match(/"Name":\s*"([^"]+)"/);
       if (nameMatch) {
         const crName = nameMatch[1];
-        // Find feature with this custom role and add a summary rationale
         for (const id of selectedIds) {
           const feature = AZURE_FEATURES[id];
           if (feature && feature.customRole && feature.customRole.name === crName) {
@@ -140,6 +148,7 @@ function buildAnnotatedAzurePolicy(selectedIds) {
           }
         }
       }
+      searchOffset = blockStart + line.length;
     }
     annotated.push(line);
   }
