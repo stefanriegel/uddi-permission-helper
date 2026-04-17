@@ -89,19 +89,19 @@ describe('getGcpCustomPermissions', () => {
     assert.equal(result.length, 10);
   });
 
-  it('returns exactly 15 permissions for cloudForwardingOutbound', () => {
+  it('returns exactly 14 permissions for cloudForwardingOutbound', () => {
     const result = getGcpCustomPermissions(['cloudForwardingOutbound']);
-    assert.equal(result.length, 15);
+    assert.equal(result.length, 14);
   });
 
-  it('returns exactly 22 unique permissions for inbound + outbound combined', () => {
+  it('returns exactly 21 unique permissions for inbound + outbound combined', () => {
     const result = getGcpCustomPermissions(['cloudForwardingInbound', 'cloudForwardingOutbound']);
-    assert.equal(result.length, 22);
+    assert.equal(result.length, 21);
   });
 
-  it('returns exactly 41 permissions for assetDiscovery', () => {
+  it('returns exactly 25 permissions for assetDiscovery', () => {
     const result = getGcpCustomPermissions(['assetDiscovery']);
-    assert.equal(result.length, 41);
+    assert.equal(result.length, 25);
   });
 
   it('returns exactly 13 permissions for internalRanges', () => {
@@ -109,19 +109,18 @@ describe('getGcpCustomPermissions', () => {
     assert.equal(result.length, 13);
   });
 
-  it('returns exactly 7 permissions for dnsReadOnly', () => {
+  it('returns exactly 5 permissions for dnsReadOnly', () => {
     const result = getGcpCustomPermissions(['dnsReadOnly']);
-    assert.equal(result.length, 7);
+    assert.equal(result.length, 5);
     assert.ok(result.includes('dns.managedZones.get'));
     assert.ok(result.includes('dns.resourceRecordSets.list'));
   });
 
-  it('returns exactly 16 permissions for dnsReadWrite', () => {
+  it('returns exactly 13 permissions for dnsReadWrite', () => {
     const result = getGcpCustomPermissions(['dnsReadWrite']);
-    assert.equal(result.length, 16);
+    assert.equal(result.length, 13);
     assert.ok(result.includes('dns.managedZones.create'));
     assert.ok(result.includes('dns.resourceRecordSets.delete'));
-    assert.ok(result.includes('dns.changes.create'));
   });
 
   it('returns exactly 4 permissions for monitoringStats', () => {

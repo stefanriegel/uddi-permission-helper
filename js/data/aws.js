@@ -32,7 +32,6 @@ const vpcIpamDiscovery = {
     'ec2:DescribeIpamPools',
     'ec2:GetIpamPoolAllocations',
     'ec2:GetIpamPoolCidrs',
-    'ec2:GetIpamResourceCidrs',
     'directconnect:DescribeDirectConnectGateways'
   ],
   rationale: {
@@ -56,7 +55,6 @@ const vpcIpamDiscovery = {
     'ec2:DescribeIpamPools': 'List IPAM pools and their CIDR allocations',
     'ec2:GetIpamPoolAllocations': 'Retrieve individual IP allocations within pools',
     'ec2:GetIpamPoolCidrs': 'Get CIDR blocks provisioned to IPAM pools',
-    'ec2:GetIpamResourceCidrs': 'List CIDR allocations across IPAM-managed resources',
     'directconnect:DescribeDirectConnectGateways': 'Discover Direct Connect gateways for hybrid connectivity'
   },
   terraform: `resource "aws_iam_policy" "infoblox_uddi_vpc_ipam_discovery" {
@@ -89,7 +87,6 @@ const vpcIpamDiscovery = {
           "ec2:DescribeIpamPools",
           "ec2:GetIpamPoolAllocations",
           "ec2:GetIpamPoolCidrs",
-          "ec2:GetIpamResourceCidrs",
           "directconnect:DescribeDirectConnectGateways"
         ]
         Resource = "*"
@@ -458,7 +455,7 @@ const multiAccount = {
             Principal: { AWS: 'arn:aws:iam::902917483333:root' },
             Action: 'sts:AssumeRole',
             Condition: {
-              StringEquals: { 'sts:ExternalId': '<YOUR_EXTERNAL_ID>' }
+              'ForAnyValue:StringEquals': { 'sts:ExternalId': ['<YOUR_EXTERNAL_ID>'] }
             }
           }
         ]
@@ -506,8 +503,8 @@ resource "aws_iam_role" "infoblox_uddi_discovery_role" {
         }
         Action = "sts:AssumeRole"
         Condition = {
-          StringEquals = {
-            "sts:ExternalId" = var.infoblox_external_id
+          "ForAnyValue:StringEquals" = {
+            "sts:ExternalId" = [var.infoblox_external_id]
           }
         }
       }
@@ -723,8 +720,8 @@ resource "aws_iam_role" "infoblox_uddi_discovery_role" {
         }
         Action = "sts:AssumeRole"
         Condition = {
-          StringEquals = {
-            "sts:ExternalId" = var.infoblox_external_id
+          "ForAnyValue:StringEquals" = {
+            "sts:ExternalId" = [var.infoblox_external_id]
           }
         }
       }
@@ -782,11 +779,13 @@ export function generateAwsGuide(selectedFeatureIds) {
     stepNum++;
     steps.push(`${stepNum}. Name the policy "InfobloxUDDI-Discovery" and create it.`);
     stepNum++;
-    steps.push(`${stepNum}. Create an IAM role named "InfobloxUDDI-DiscoveryRole".`);
+    steps.push(`${stepNum}. Create an IAM role named "InfobloxUDDI-DiscoveryRole". For the trusted entity, select "Another AWS account" and enter account ID 902917483333 (Infoblox service account).`);
+    stepNum++;
+    steps.push(`${stepNum}. Enable "Require external ID" and enter the External ID from the Infoblox Portal (found under cloud provider connection settings). This prevents confused deputy attacks.`);
     stepNum++;
     steps.push(`${stepNum}. Attach the "InfobloxUDDI-Discovery" policy to the role.`);
     stepNum++;
-    steps.push(`${stepNum}. Configure the role ARN in the Infoblox Portal under cloud provider settings.`);
+    steps.push(`${stepNum}. Copy the role ARN and configure it in the Infoblox Portal under cloud provider settings.`);
     stepNum++;
   }
 

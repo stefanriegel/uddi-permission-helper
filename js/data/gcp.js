@@ -18,90 +18,58 @@ const assetDiscovery = {
   question: 'Discover VMs, disks, networking resources?',
   predefinedRoles: [],
   customPermissions: [
+    'resourcemanager.projects.get',
     'compute.instances.list',
-    'compute.instances.get',
     'compute.disks.list',
-    'compute.disks.get',
     'compute.networks.list',
-    'compute.networks.get',
     'compute.subnetworks.list',
-    'compute.subnetworks.get',
-    'compute.addresses.list',
-    'compute.addresses.get',
     'compute.firewalls.list',
-    'compute.firewalls.get',
-    'compute.routes.list',
-    'compute.routes.get',
-    'compute.routers.list',
-    'compute.routers.get',
-    'compute.forwardingRules.list',
-    'compute.forwardingRules.get',
-    'compute.globalAddresses.list',
-    'compute.globalAddresses.get',
-    'compute.globalForwardingRules.list',
-    'compute.globalForwardingRules.get',
-    'compute.zones.list',
-    'compute.regions.list',
-    'compute.projects.get',
-    'compute.backendBuckets.list',
-    'compute.backendServices.list',
-    'compute.healthChecks.list',
+    'compute.addresses.list',
+    'compute.targetPools.list',
     'compute.instanceGroups.list',
+    'compute.backendServices.list',
+    'compute.backendBuckets.list',
+    'compute.forwardingRules.list',
     'compute.networkEndpointGroups.list',
-    'compute.sslCertificates.list',
+    'compute.routers.list',
+    'compute.routes.list',
     'compute.targetHttpProxies.list',
     'compute.targetHttpsProxies.list',
-    'compute.targetPools.list',
     'compute.targetSslProxies.list',
     'compute.targetTcpProxies.list',
-    'compute.targetVpnGateways.list',
     'compute.urlMaps.list',
+    'compute.healthChecks.list',
+    'compute.sslCertificates.list',
     'compute.vpnGateways.list',
     'compute.vpnTunnels.list',
-    'resourcemanager.projects.get'
+    'compute.targetVpnGateways.list'
   ],
   rationale: {
+    'resourcemanager.projects.get': 'Retrieve project metadata and labels',
     'compute.instances.list': 'Enumerate VM instances for asset inventory',
-    'compute.instances.get': 'Retrieve VM instance details and metadata',
     'compute.disks.list': 'Enumerate persistent disks across the project',
-    'compute.disks.get': 'Retrieve disk size, type, and attachment details',
     'compute.networks.list': 'Enumerate VPC networks for topology mapping',
-    'compute.networks.get': 'Retrieve VPC network configuration and peering details',
     'compute.subnetworks.list': 'Enumerate subnets within each VPC network',
-    'compute.subnetworks.get': 'Retrieve subnet CIDR ranges and secondary ranges',
-    'compute.addresses.list': 'Enumerate reserved IP addresses in the project',
-    'compute.addresses.get': 'Retrieve IP address allocation details',
     'compute.firewalls.list': 'Enumerate firewall rules for network access analysis',
-    'compute.firewalls.get': 'Retrieve firewall rule priority, direction, and targets',
-    'compute.routes.list': 'Enumerate custom routes for routing topology',
-    'compute.routes.get': 'Retrieve route next-hop and destination details',
-    'compute.routers.list': 'Enumerate Cloud Routers for dynamic routing discovery',
-    'compute.routers.get': 'Retrieve Cloud Router BGP and NAT configuration',
-    'compute.forwardingRules.list': 'Enumerate regional forwarding rules for load balancing',
-    'compute.forwardingRules.get': 'Retrieve forwarding rule target and port configuration',
-    'compute.globalAddresses.list': 'Enumerate global IP addresses for global load balancers',
-    'compute.globalAddresses.get': 'Retrieve global address allocation details',
-    'compute.globalForwardingRules.list': 'Enumerate global forwarding rules for cross-region load balancing',
-    'compute.globalForwardingRules.get': 'Retrieve global forwarding rule target proxy configuration',
-    'compute.zones.list': 'Enumerate available zones for resource placement context',
-    'compute.regions.list': 'Enumerate available regions for multi-region discovery',
-    'compute.projects.get': 'Retrieve project-level compute quotas and metadata',
-    'compute.backendBuckets.list': 'Enumerate backend buckets for load balancer discovery',
-    'compute.backendServices.list': 'Enumerate backend services for load balancer topology',
-    'compute.healthChecks.list': 'List health check configurations for load balancers',
+    'compute.addresses.list': 'Enumerate reserved IP addresses in the project',
+    'compute.targetPools.list': 'Enumerate target pools for network load balancers',
     'compute.instanceGroups.list': 'Enumerate instance groups for scaling and load balancing',
+    'compute.backendServices.list': 'Enumerate backend services for load balancer topology',
+    'compute.backendBuckets.list': 'Enumerate backend buckets for load balancer discovery',
+    'compute.forwardingRules.list': 'Enumerate regional forwarding rules for load balancing',
     'compute.networkEndpointGroups.list': 'List network endpoint groups for serverless load balancing',
-    'compute.sslCertificates.list': 'Enumerate SSL certificates for HTTPS load balancers',
+    'compute.routers.list': 'Enumerate Cloud Routers for dynamic routing discovery',
+    'compute.routes.list': 'Enumerate custom routes for routing topology',
     'compute.targetHttpProxies.list': 'List HTTP proxy targets for load balancer routing',
     'compute.targetHttpsProxies.list': 'List HTTPS proxy targets for load balancer routing',
-    'compute.targetPools.list': 'Enumerate target pools for network load balancers',
     'compute.targetSslProxies.list': 'List SSL proxy targets for load balancer routing',
     'compute.targetTcpProxies.list': 'List TCP proxy targets for load balancer routing',
-    'compute.targetVpnGateways.list': 'Enumerate classic VPN gateway targets',
     'compute.urlMaps.list': 'List URL maps for HTTP(S) load balancer routing rules',
+    'compute.healthChecks.list': 'List health check configurations for load balancers',
+    'compute.sslCertificates.list': 'Enumerate SSL certificates for HTTPS load balancers',
     'compute.vpnGateways.list': 'Enumerate HA VPN gateways',
     'compute.vpnTunnels.list': 'List VPN tunnels for site-to-site connectivity',
-    'resourcemanager.projects.get': 'Retrieve project metadata and labels'
+    'compute.targetVpnGateways.list': 'Enumerate classic VPN gateway targets'
   },
   terraform: `resource "google_project_iam_custom_role" "infoblox_uddi_asset_discovery" {
   project     = var.project_id
@@ -109,47 +77,31 @@ const assetDiscovery = {
   title       = "Infoblox UDDI - Asset Discovery"
   description = "Infoblox Universal DDI - Compute and network asset discovery permissions"
   permissions = [
+    "resourcemanager.projects.get",
     "compute.instances.list",
-    "compute.instances.get",
     "compute.disks.list",
-    "compute.disks.get",
     "compute.networks.list",
-    "compute.networks.get",
     "compute.subnetworks.list",
-    "compute.subnetworks.get",
-    "compute.addresses.list",
-    "compute.addresses.get",
     "compute.firewalls.list",
-    "compute.firewalls.get",
-    "compute.routes.list",
-    "compute.routes.get",
-    "compute.routers.list",
-    "compute.routers.get",
-    "compute.forwardingRules.list",
-    "compute.forwardingRules.get",
-    "compute.globalAddresses.list",
-    "compute.globalAddresses.get",
-    "compute.globalForwardingRules.list",
-    "compute.globalForwardingRules.get",
-    "compute.zones.list",
-    "compute.regions.list",
-    "compute.projects.get",
-    "compute.backendBuckets.list",
-    "compute.backendServices.list",
-    "compute.healthChecks.list",
+    "compute.addresses.list",
+    "compute.targetPools.list",
     "compute.instanceGroups.list",
+    "compute.backendServices.list",
+    "compute.backendBuckets.list",
+    "compute.forwardingRules.list",
     "compute.networkEndpointGroups.list",
-    "compute.sslCertificates.list",
+    "compute.routers.list",
+    "compute.routes.list",
     "compute.targetHttpProxies.list",
     "compute.targetHttpsProxies.list",
-    "compute.targetPools.list",
     "compute.targetSslProxies.list",
     "compute.targetTcpProxies.list",
-    "compute.targetVpnGateways.list",
     "compute.urlMaps.list",
+    "compute.healthChecks.list",
+    "compute.sslCertificates.list",
     "compute.vpnGateways.list",
     "compute.vpnTunnels.list",
-    "resourcemanager.projects.get"
+    "compute.targetVpnGateways.list"
   ]
 }
 
@@ -163,27 +115,19 @@ resource "google_project_iam_member" "infoblox_uddi_asset_discovery" {
 3. Navigate to IAM & Admin > Roles.
 4. Click "Create Role".
 5. Name: "Infoblox UDDI - Asset Discovery", ID: "infobloxUddiAssetDiscovery".
-6. Click "Add Permissions" and add all 41 permissions:
-   - compute.instances.list, compute.instances.get
-   - compute.disks.list, compute.disks.get
-   - compute.networks.list, compute.networks.get
-   - compute.subnetworks.list, compute.subnetworks.get
-   - compute.addresses.list, compute.addresses.get
-   - compute.firewalls.list, compute.firewalls.get
-   - compute.routes.list, compute.routes.get
-   - compute.routers.list, compute.routers.get
-   - compute.forwardingRules.list, compute.forwardingRules.get
-   - compute.globalAddresses.list, compute.globalAddresses.get
-   - compute.globalForwardingRules.list, compute.globalForwardingRules.get
-   - compute.zones.list, compute.regions.list, compute.projects.get
-   - compute.backendBuckets.list, compute.backendServices.list
-   - compute.healthChecks.list, compute.instanceGroups.list
-   - compute.networkEndpointGroups.list, compute.sslCertificates.list
-   - compute.targetHttpProxies.list, compute.targetHttpsProxies.list
-   - compute.targetPools.list, compute.targetSslProxies.list
-   - compute.targetTcpProxies.list, compute.targetVpnGateways.list
-   - compute.urlMaps.list, compute.vpnGateways.list, compute.vpnTunnels.list
+6. Click "Add Permissions" and add all 25 permissions:
    - resourcemanager.projects.get
+   - compute.instances.list, compute.disks.list
+   - compute.networks.list, compute.subnetworks.list
+   - compute.firewalls.list, compute.addresses.list
+   - compute.targetPools.list, compute.instanceGroups.list
+   - compute.backendServices.list, compute.backendBuckets.list
+   - compute.forwardingRules.list, compute.networkEndpointGroups.list
+   - compute.routers.list, compute.routes.list
+   - compute.targetHttpProxies.list, compute.targetHttpsProxies.list
+   - compute.targetSslProxies.list, compute.targetTcpProxies.list
+   - compute.urlMaps.list, compute.healthChecks.list, compute.sslCertificates.list
+   - compute.vpnGateways.list, compute.vpnTunnels.list, compute.targetVpnGateways.list
 7. Click "Create".
 8. Navigate to IAM & Admin > IAM.
 9. Click "Grant Access", add the service account, and assign the custom role.
@@ -192,7 +136,7 @@ Alternatively, use gcloud CLI:
 gcloud iam roles create infobloxUddiAssetDiscovery \\
   --project=<PROJECT_ID> \\
   --title="Infoblox UDDI - Asset Discovery" \\
-  --permissions="compute.instances.list,compute.instances.get,compute.disks.list,compute.disks.get,compute.networks.list,compute.networks.get,compute.subnetworks.list,compute.subnetworks.get,compute.addresses.list,compute.addresses.get,compute.firewalls.list,compute.firewalls.get,compute.routes.list,compute.routes.get,compute.routers.list,compute.routers.get,compute.forwardingRules.list,compute.forwardingRules.get,compute.globalAddresses.list,compute.globalAddresses.get,compute.globalForwardingRules.list,compute.globalForwardingRules.get,compute.zones.list,compute.regions.list,compute.projects.get,compute.backendBuckets.list,compute.backendServices.list,compute.healthChecks.list,compute.instanceGroups.list,compute.networkEndpointGroups.list,compute.sslCertificates.list,compute.targetHttpProxies.list,compute.targetHttpsProxies.list,compute.targetPools.list,compute.targetSslProxies.list,compute.targetTcpProxies.list,compute.targetVpnGateways.list,compute.urlMaps.list,compute.vpnGateways.list,compute.vpnTunnels.list,resourcemanager.projects.get"
+  --permissions="resourcemanager.projects.get,compute.instances.list,compute.disks.list,compute.networks.list,compute.subnetworks.list,compute.firewalls.list,compute.addresses.list,compute.targetPools.list,compute.instanceGroups.list,compute.backendServices.list,compute.backendBuckets.list,compute.forwardingRules.list,compute.networkEndpointGroups.list,compute.routers.list,compute.routes.list,compute.targetHttpProxies.list,compute.targetHttpsProxies.list,compute.targetSslProxies.list,compute.targetTcpProxies.list,compute.urlMaps.list,compute.healthChecks.list,compute.sslCertificates.list,compute.vpnGateways.list,compute.vpnTunnels.list,compute.targetVpnGateways.list"
 
 gcloud projects add-iam-policy-binding <PROJECT_ID> \\
   --member="serviceAccount:<SA_EMAIL>" \\
@@ -266,8 +210,6 @@ const dnsReadOnly = {
     'dns.managedZones.list',
     'dns.resourceRecordSets.get',
     'dns.resourceRecordSets.list',
-    'dns.changes.get',
-    'dns.changes.list',
     'dns.projects.get'
   ],
   rationale: {
@@ -275,8 +217,6 @@ const dnsReadOnly = {
     'dns.managedZones.list': 'Enumerate Cloud DNS managed zones in the project',
     'dns.resourceRecordSets.get': 'Retrieve individual DNS record details',
     'dns.resourceRecordSets.list': 'Enumerate DNS records within managed zones',
-    'dns.changes.get': 'Check status of DNS record change operations',
-    'dns.changes.list': 'List DNS record change history',
     'dns.projects.get': 'Read DNS project-level settings'
   },
   terraform: `resource "google_project_iam_custom_role" "infoblox_uddi_dns_read_only" {
@@ -289,8 +229,6 @@ const dnsReadOnly = {
     "dns.managedZones.list",
     "dns.resourceRecordSets.get",
     "dns.resourceRecordSets.list",
-    "dns.changes.get",
-    "dns.changes.list",
     "dns.projects.get"
   ]
 }
@@ -303,10 +241,9 @@ resource "google_project_iam_member" "infoblox_uddi_dns_read_only" {
   setupGuide: `1. Navigate to IAM & Admin > Roles in the GCP Console.
 2. Click "Create Role".
 3. Name: "Infoblox UDDI - DNS Read-Only", ID: "infobloxUddiDnsReadOnly".
-4. Click "Add Permissions" and add the following 7 permissions:
+4. Click "Add Permissions" and add the following 5 permissions:
    - dns.managedZones.get, dns.managedZones.list
    - dns.resourceRecordSets.get, dns.resourceRecordSets.list
-   - dns.changes.get, dns.changes.list
    - dns.projects.get
 5. Click "Create".
 6. Navigate to IAM & Admin > IAM.
@@ -316,7 +253,7 @@ Alternatively, use gcloud CLI:
 gcloud iam roles create infobloxUddiDnsReadOnly \\
   --project=<PROJECT_ID> \\
   --title="Infoblox UDDI - DNS Read-Only" \\
-  --permissions="dns.managedZones.get,dns.managedZones.list,dns.resourceRecordSets.get,dns.resourceRecordSets.list,dns.changes.get,dns.changes.list,dns.projects.get"
+  --permissions="dns.managedZones.get,dns.managedZones.list,dns.resourceRecordSets.get,dns.resourceRecordSets.list,dns.projects.get"
 
 gcloud projects add-iam-policy-binding <PROJECT_ID> \\
   --member="serviceAccount:<SA_EMAIL>" \\
@@ -341,9 +278,6 @@ const dnsReadWrite = {
     'dns.resourceRecordSets.create',
     'dns.resourceRecordSets.update',
     'dns.resourceRecordSets.delete',
-    'dns.changes.create',
-    'dns.changes.get',
-    'dns.changes.list',
     'dns.projects.get',
     'dns.networks.bindPrivateDNSZone',
     'dns.networks.bindPrivateDNSPolicy'
@@ -359,9 +293,6 @@ const dnsReadWrite = {
     'dns.resourceRecordSets.create': 'Create DNS records in managed zones',
     'dns.resourceRecordSets.update': 'Modify existing DNS records in managed zones',
     'dns.resourceRecordSets.delete': 'Remove DNS records from managed zones',
-    'dns.changes.create': 'Submit record set change batches to Cloud DNS',
-    'dns.changes.get': 'Check status of DNS record change operations',
-    'dns.changes.list': 'List DNS record change history',
     'dns.projects.get': 'Read DNS project-level settings',
     'dns.networks.bindPrivateDNSZone': 'Bind private DNS zones to VPC networks',
     'dns.networks.bindPrivateDNSPolicy': 'Bind DNS policies to VPC networks'
@@ -382,9 +313,6 @@ const dnsReadWrite = {
     "dns.resourceRecordSets.create",
     "dns.resourceRecordSets.update",
     "dns.resourceRecordSets.delete",
-    "dns.changes.create",
-    "dns.changes.get",
-    "dns.changes.list",
     "dns.projects.get",
     "dns.networks.bindPrivateDNSZone",
     "dns.networks.bindPrivateDNSPolicy"
@@ -399,10 +327,9 @@ resource "google_project_iam_member" "infoblox_uddi_dns_read_write" {
   setupGuide: `1. Navigate to IAM & Admin > Roles in the GCP Console.
 2. Click "Create Role".
 3. Name: "Infoblox UDDI - DNS Read-Write", ID: "infobloxUddiDnsReadWrite".
-4. Click "Add Permissions" and add all 16 permissions:
+4. Click "Add Permissions" and add all 13 permissions:
    - dns.managedZones.get, dns.managedZones.list, dns.managedZones.create, dns.managedZones.update, dns.managedZones.delete
    - dns.resourceRecordSets.get, dns.resourceRecordSets.list, dns.resourceRecordSets.create, dns.resourceRecordSets.update, dns.resourceRecordSets.delete
-   - dns.changes.create, dns.changes.get, dns.changes.list
    - dns.projects.get
    - dns.networks.bindPrivateDNSZone, dns.networks.bindPrivateDNSPolicy
 5. Click "Create".
@@ -413,7 +340,7 @@ Alternatively, use gcloud CLI:
 gcloud iam roles create infobloxUddiDnsReadWrite \\
   --project=<PROJECT_ID> \\
   --title="Infoblox UDDI - DNS Read-Write" \\
-  --permissions="dns.managedZones.get,dns.managedZones.list,dns.managedZones.create,dns.managedZones.update,dns.managedZones.delete,dns.resourceRecordSets.get,dns.resourceRecordSets.list,dns.resourceRecordSets.create,dns.resourceRecordSets.update,dns.resourceRecordSets.delete,dns.changes.create,dns.changes.get,dns.changes.list,dns.projects.get,dns.networks.bindPrivateDNSZone,dns.networks.bindPrivateDNSPolicy"
+  --permissions="dns.managedZones.get,dns.managedZones.list,dns.managedZones.create,dns.managedZones.update,dns.managedZones.delete,dns.resourceRecordSets.get,dns.resourceRecordSets.list,dns.resourceRecordSets.create,dns.resourceRecordSets.update,dns.resourceRecordSets.delete,dns.projects.get,dns.networks.bindPrivateDNSZone,dns.networks.bindPrivateDNSPolicy"
 
 gcloud projects add-iam-policy-binding <PROJECT_ID> \\
   --member="serviceAccount:<SA_EMAIL>" \\
@@ -519,8 +446,7 @@ const cloudForwardingOutbound = {
     'dns.resourceRecordSets.list',
     'dns.resourceRecordSets.create',
     'dns.resourceRecordSets.update',
-    'dns.resourceRecordSets.delete',
-    'dns.changes.create'
+    'dns.resourceRecordSets.delete'
   ],
   rationale: {
     'dns.projects.get': 'Read DNS project settings for zone configuration',
@@ -536,8 +462,7 @@ const cloudForwardingOutbound = {
     'dns.resourceRecordSets.list': 'Enumerate DNS records within managed zones',
     'dns.resourceRecordSets.create': 'Create DNS records in managed zones',
     'dns.resourceRecordSets.update': 'Modify existing DNS records in managed zones',
-    'dns.resourceRecordSets.delete': 'Remove DNS records from managed zones',
-    'dns.changes.create': 'Submit record set change batches to Cloud DNS'
+    'dns.resourceRecordSets.delete': 'Remove DNS records from managed zones'
   },
   terraform: `resource "google_project_iam_custom_role" "infoblox_uddi_cf_outbound" {
   project     = var.project_id
@@ -558,8 +483,7 @@ const cloudForwardingOutbound = {
     "dns.resourceRecordSets.list",
     "dns.resourceRecordSets.create",
     "dns.resourceRecordSets.update",
-    "dns.resourceRecordSets.delete",
-    "dns.changes.create"
+    "dns.resourceRecordSets.delete"
   ]
 }
 
@@ -571,13 +495,12 @@ resource "google_project_iam_member" "infoblox_uddi_cf_outbound" {
   setupGuide: `1. Navigate to IAM & Admin > Roles in the GCP Console.
 2. Click "Create Role".
 3. Name: "Infoblox UDDI - Cloud Forwarding Outbound", ID: "infobloxUddiCloudForwardingOutbound".
-4. Click "Add Permissions" and add all 15 permissions:
+4. Click "Add Permissions" and add all 14 permissions:
    - dns.projects.get
    - compute.networks.get, compute.networks.list
    - dns.managedZones.get, dns.managedZones.list, dns.managedZones.create, dns.managedZones.update, dns.managedZones.delete
    - dns.networks.bindPrivateDNSZone
    - dns.resourceRecordSets.get, dns.resourceRecordSets.list, dns.resourceRecordSets.create, dns.resourceRecordSets.update, dns.resourceRecordSets.delete
-   - dns.changes.create
 5. Click "Create".
 6. Navigate to IAM & Admin > IAM.
 7. Click "Grant Access", add the service account, and assign the custom role.
@@ -586,7 +509,7 @@ Alternatively, use gcloud CLI:
 gcloud iam roles create infobloxUddiCloudForwardingOutbound \\
   --project=<PROJECT_ID> \\
   --title="Infoblox UDDI - Cloud Forwarding Outbound" \\
-  --permissions="dns.projects.get,compute.networks.get,compute.networks.list,dns.managedZones.get,dns.managedZones.list,dns.managedZones.create,dns.managedZones.update,dns.managedZones.delete,dns.networks.bindPrivateDNSZone,dns.resourceRecordSets.get,dns.resourceRecordSets.list,dns.resourceRecordSets.create,dns.resourceRecordSets.update,dns.resourceRecordSets.delete,dns.changes.create"
+  --permissions="dns.projects.get,compute.networks.get,compute.networks.list,dns.managedZones.get,dns.managedZones.list,dns.managedZones.create,dns.managedZones.update,dns.managedZones.delete,dns.networks.bindPrivateDNSZone,dns.resourceRecordSets.get,dns.resourceRecordSets.list,dns.resourceRecordSets.create,dns.resourceRecordSets.update,dns.resourceRecordSets.delete"
 
 gcloud projects add-iam-policy-binding <PROJECT_ID> \\
   --member="serviceAccount:<SA_EMAIL>" \\
@@ -1057,8 +980,24 @@ export function generateGcpGuide(selectedFeatureIds) {
   const steps = [];
   let stepNum = 1;
 
-  // Step 1: Create service account
-  steps.push(`${stepNum}. Open the GCP Console and navigate to IAM & Admin > Service Accounts. Create a service account named "infoblox-uddi" (or use an existing one).`);
+  // Step 1: Enable required APIs
+  const apiList = [];
+  for (const id of selectedFeatureIds) {
+    if (id === 'assetDiscovery') { apiList.push('compute.googleapis.com'); apiList.push('container.googleapis.com'); }
+    if (id === 'storageBuckets') apiList.push('storage.googleapis.com');
+    if (id === 'dnsReadOnly' || id === 'dnsReadWrite' || id === 'cloudForwardingInbound' || id === 'cloudForwardingOutbound') apiList.push('dns.googleapis.com');
+    if (id === 'monitoringStats') apiList.push('monitoring.googleapis.com');
+    if (id === 'internalRanges') apiList.push('networkconnectivity.googleapis.com');
+    if (id === 'multiProjectOrg') apiList.push('cloudresourcemanager.googleapis.com');
+  }
+  const uniqueApis = [...new Set(apiList)];
+  if (uniqueApis.length > 0) {
+    steps.push(`${stepNum}. Enable the required APIs in the GCP Console (APIs & Services > Enable APIs) or via gcloud: ${uniqueApis.map(a => `gcloud services enable ${a}`).join('; ')}.`);
+    stepNum++;
+  }
+
+  // Step 2: Create service account
+  steps.push(`${stepNum}. Navigate to IAM & Admin > Service Accounts. Create a service account named "infoblox-uddi" (or use an existing one).`);
   stepNum++;
 
   // Predefined role bindings
@@ -1095,8 +1034,12 @@ export function generateGcpGuide(selectedFeatureIds) {
     stepNum++;
   }
 
+  // Service account credentials
+  steps.push(`${stepNum}. Create credentials for the service account: navigate to IAM & Admin > Service Accounts, select the account, go to Keys > Add Key > Create new key (JSON). Download and store the key file securely. Alternatively, configure Workload Identity Federation for keyless authentication.`);
+  stepNum++;
+
   // Final step: Infoblox Portal
-  steps.push(`${stepNum}. In the Infoblox Portal, navigate to cloud provider settings and configure the GCP service account credentials (key file or workload identity).`);
+  steps.push(`${stepNum}. In the Infoblox Portal, navigate to cloud provider settings and upload the service account key file (or configure Workload Identity Federation).`);
 
   return steps.join('\n');
 }
