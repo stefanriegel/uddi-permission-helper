@@ -646,6 +646,14 @@ input {
   outline-offset: -3px;
 }
 
+.output__hint {
+  margin: 0;
+  padding: 10px var(--space-md) 0;
+  color: var(--color-output-muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
 /* Toolbar */
 .output__toolbar {
   display: flex;

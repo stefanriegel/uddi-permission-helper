@@ -1,13 +1,13 @@
 /**
  * Output rendering module for UDDI Permission Scope Helper.
  *
- * Dispatches to provider-specific generators and renders Policy, Terraform,
- * and Setup Guide content into the output panel tabs. Injects inline rationale
+ * Dispatches to provider-specific generators and renders Policy, Cloud CLI,
+ * Terraform, and Setup Guide content into the output panel tabs. Injects inline rationale
  * comments into Policy output and updates the permission count badge.
  */
 
-import { AWS_FEATURES, getAwsActions, generateAwsPolicy, generateAwsTerraform, generateAwsGuide } from './data/aws.js';
-import { AZURE_FEATURES, getAzureRoles, generateAzurePolicy, generateAzureTerraform, generateAzureGuide } from './data/azure.js';
+import { AWS_FEATURES, getAwsActions, generateAwsPolicy, generateAwsCli, generateAwsTerraform, generateAwsGuide } from './data/aws.js';
+import { AZURE_FEATURES, getAzureRoles, getAzureCustomRoles, generateAzurePolicy, generateAzureTerraform, generateAzureGuide } from './data/azure.js';
 import { GCP_FEATURES, getGcpRoles, getGcpCustomPermissions, generateGcpPolicy, generateGcpTerraform, generateGcpGuide } from './data/gcp.js';
 
 /** AWS managed policy character limit */
@@ -93,12 +93,73 @@ ${actionStrings.join('\n')}
 }
 
 /**
+ * Add rationale comments to AWS CLI command output.
+ *
+ * @param {string[]} selectedIds - Selected feature IDs
+ * @returns {string} AWS CLI commands with comment headers
+ */
+function buildAnnotatedAwsCli(selectedIds) {
+  const rawOutput = generateAwsCli(selectedIds);
+  if (!rawOutput) return '';
+
+  const sections = [];
+
+  if (getAwsActions(selectedIds).length > 0) {
+    sections.push('# Create and attach the AWS managed policy for the selected discovery permissions');
+  }
+
+  if (selectedIds.includes('multiAccount')) {
+    sections.push('# Create the management-account and sub-account roles required for multi-account discovery');
+  }
+
+  return sections.length > 0 ? `${sections.join('\n')}\n\n${rawOutput}` : rawOutput;
+}
+
+/**
+ * Build a structured Azure policy summary.
+ *
+ * @param {string[]} selectedIds
+ * @returns {string}
+ */
+function buildAzurePolicySummary(selectedIds) {
+  const builtInRoles = getAzureRoles(selectedIds);
+  const customRoles = getAzureCustomRoles(selectedIds);
+  const includesMultiSubscription = selectedIds.includes('multiSubscription');
+
+  if (builtInRoles.length === 0 && customRoles.length === 0 && !includesMultiSubscription) {
+    return '';
+  }
+
+  const summary = {
+    platform: 'azure',
+    assignmentModel: 'rbac',
+    builtInRoles: builtInRoles.map(role => ({
+      name: role.name,
+      scope: role.scope
+    })),
+    customRoles: customRoles.map(role => ({
+      name: role.name,
+      scope: role.scope,
+      permissions: [...role.permissions].sort()
+    })),
+    guidance: includesMultiSubscription ? [
+      {
+        type: 'managementGroupScope',
+        message: 'Assign the required roles at management group scope for multi-subscription discovery.'
+      }
+    ] : []
+  };
+
+  return JSON.stringify(summary, null, 2);
+}
+
+/**
  * Add rationale comments to Azure CLI command output.
  *
  * @param {string[]} selectedIds - Selected feature IDs
  * @returns {string} Azure CLI commands with # rationale comments
  */
-function buildAnnotatedAzurePolicy(selectedIds) {
+function buildAnnotatedAzureCli(selectedIds) {
   const rawOutput = generateAzurePolicy(selectedIds);
   if (!rawOutput) return '';
 
@@ -157,12 +218,60 @@ function buildAnnotatedAzurePolicy(selectedIds) {
 }
 
 /**
+ * Build a structured GCP policy summary.
+ *
+ * @param {string[]} selectedIds
+ * @returns {string}
+ */
+function buildGcpPolicySummary(selectedIds) {
+  const predefinedRoles = getGcpRoles(selectedIds);
+  const allCustomPermissions = getGcpCustomPermissions(selectedIds);
+  const organizationCustomPermissions = selectedIds.includes('multiProjectOrg')
+    ? [...GCP_FEATURES.multiProjectOrg.customPermissions].sort()
+    : [];
+  const organizationPermissionSet = new Set(organizationCustomPermissions);
+  const projectCustomPermissions = allCustomPermissions.filter(permission => !organizationPermissionSet.has(permission));
+
+  if (predefinedRoles.length === 0 && organizationCustomPermissions.length === 0 && projectCustomPermissions.length === 0) {
+    return '';
+  }
+
+  const summary = {
+    platform: 'gcp',
+    assignmentModel: 'iam',
+    predefinedRoles: predefinedRoles.map(role => ({
+      role: role.role,
+      scope: role.scope
+    })),
+    customRoles: []
+  };
+
+  if (organizationCustomPermissions.length > 0) {
+    summary.customRoles.push({
+      scope: 'organization',
+      title: 'Infoblox UDDI Organization Custom Role',
+      permissions: organizationCustomPermissions
+    });
+  }
+
+  if (projectCustomPermissions.length > 0) {
+    summary.customRoles.push({
+      scope: 'project',
+      title: 'Infoblox UDDI Custom Role',
+      permissions: projectCustomPermissions
+    });
+  }
+
+  return JSON.stringify(summary, null, 2);
+}
+
+/**
  * Add rationale comments to GCP gcloud command output.
  *
  * @param {string[]} selectedIds - Selected feature IDs
  * @returns {string} gcloud commands with # rationale comments
  */
-function buildAnnotatedGcpPolicy(selectedIds) {
+function buildAnnotatedGcpCli(selectedIds) {
   const rawOutput = generateGcpPolicy(selectedIds);
   if (!rawOutput) return '';
 
@@ -250,7 +359,7 @@ function renderPolicySizeWarning(providerId, policyText) {
 }
 
 /**
- * Render output content into all three tab panels.
+ * Render output content into all four tab panels.
  *
  * @param {string} providerId - Active provider ID ('aws', 'azure', 'gcp')
  * @param {object} features - Features object from state {featureId: boolean}
@@ -259,15 +368,17 @@ export function renderOutput(providerId, features) {
   const selectedIds = Object.keys(features).filter(id => features[id] === true);
 
   const policyPanel = document.getElementById('panel-policy');
+  const cliPanel = document.getElementById('panel-cli');
   const terraformPanel = document.getElementById('panel-terraform');
   const guidePanel = document.getElementById('panel-guide');
 
-  if (!policyPanel || !terraformPanel || !guidePanel) return;
+  if (!policyPanel || !cliPanel || !terraformPanel || !guidePanel) return;
 
   // Empty state
   if (selectedIds.length === 0) {
     const placeholder = '<p class="output__placeholder">Select features to generate your permission policy.</p>';
     policyPanel.innerHTML = placeholder;
+    cliPanel.innerHTML = placeholder;
     terraformPanel.innerHTML = placeholder;
     guidePanel.innerHTML = placeholder;
     setButtonsDisabled(true);
@@ -278,25 +389,30 @@ export function renderOutput(providerId, features) {
 
   // Generate content per provider
   let policyContent = '';
+  let cliContent = '';
   let terraformContent = '';
   let guideContent = '';
   let policyLang = 'language-json';
+  let cliLang = 'language-bash';
 
   if (providerId === 'aws') {
     policyContent = buildAnnotatedAwsPolicy(selectedIds);
+    cliContent = buildAnnotatedAwsCli(selectedIds);
     terraformContent = generateAwsTerraform(selectedIds);
     guideContent = generateAwsGuide(selectedIds);
     policyLang = 'language-json';
   } else if (providerId === 'azure') {
-    policyContent = buildAnnotatedAzurePolicy(selectedIds);
+    policyContent = buildAzurePolicySummary(selectedIds);
+    cliContent = buildAnnotatedAzureCli(selectedIds);
     terraformContent = generateAzureTerraform(selectedIds);
     guideContent = generateAzureGuide(selectedIds);
-    policyLang = 'language-bash';
+    policyLang = 'language-json';
   } else if (providerId === 'gcp') {
-    policyContent = buildAnnotatedGcpPolicy(selectedIds);
+    policyContent = buildGcpPolicySummary(selectedIds);
+    cliContent = buildAnnotatedGcpCli(selectedIds);
     terraformContent = generateGcpTerraform(selectedIds);
     guideContent = generateGcpGuide(selectedIds);
-    policyLang = 'language-bash';
+    policyLang = 'language-json';
   }
 
   // AWS policy size warning (uses raw JSON policy, not annotated version)
@@ -305,6 +421,9 @@ export function renderOutput(providerId, features) {
 
   // Render policy tab
   policyPanel.innerHTML = `<pre><code class="${policyLang}">${escapeHtml(policyContent)}</code></pre>`;
+
+  // Render cloud CLI tab
+  cliPanel.innerHTML = `<pre><code class="${cliLang}">${escapeHtml(cliContent)}</code></pre>`;
 
   // Render terraform tab
   terraformPanel.innerHTML = `<pre><code class="language-hcl">${escapeHtml(terraformContent)}</code></pre>`;
@@ -342,10 +461,12 @@ export function updateBadge(providerId, features) {
     }
   } else if (providerId === 'azure') {
     count = getAzureRoles(selectedIds).length;
-    // Add custom role permission counts
+    // Add deduplicated custom role permission counts
+    const seenCustomRoles = new Set();
     for (const id of selectedIds) {
       const feature = AZURE_FEATURES[id];
-      if (feature && feature.customRole) {
+      if (feature && feature.customRole && !seenCustomRoles.has(feature.customRole.name)) {
+        seenCustomRoles.add(feature.customRole.name);
         count += feature.customRole.permissions.length;
       }
     }
@@ -391,15 +512,20 @@ export function getActiveTabId() {
 /**
  * Get the appropriate download filename for the active provider and tab.
  * @param {string} providerId - Active provider ('aws', 'azure', 'gcp')
- * @param {string} tabId - Panel ID ('panel-policy', 'panel-terraform', 'panel-guide')
+ * @param {string} tabId - Panel ID ('panel-policy', 'panel-cli', 'panel-terraform', 'panel-guide')
  * @returns {string} Filename with extension
  */
 export function getDownloadFilename(providerId, tabId) {
   const extensions = {
     'panel-policy': {
       aws: 'aws-policy.json',
-      azure: 'azure-policy.sh',
-      gcp: 'gcp-policy.sh'
+      azure: 'azure-policy.json',
+      gcp: 'gcp-policy.json'
+    },
+    'panel-cli': {
+      aws: 'aws-cli.sh',
+      azure: 'azure-cli.sh',
+      gcp: 'gcp-cli.sh'
     },
     'panel-terraform': {
       aws: 'aws-terraform.tf',

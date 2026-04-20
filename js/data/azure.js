@@ -709,9 +709,7 @@ export function generateAzureTerraform(selectedFeatureIds) {
   const parts = [];
 
   // Data sources
-  parts.push(`data "azurerm_subscription" "current" {}
-
-data "azurerm_client_config" "current" {}`);
+  parts.push(`data "azurerm_subscription" "current" {}`);
 
   // Built-in role assignments
   for (const role of roles) {
@@ -724,7 +722,7 @@ data "azurerm_client_config" "current" {}`);
 resource "azurerm_role_assignment" "infoblox_uddi_${resourceName}" {
   scope              = data.azurerm_subscription.current.id
   role_definition_id = data.azurerm_role_definition.${resourceName}.role_definition_id
-  principal_id       = data.azurerm_client_config.current.object_id
+  principal_id       = var.infoblox_service_principal_id
 }`);
   }
 
@@ -757,7 +755,7 @@ ${actionsHcl}
 resource "azurerm_role_assignment" "${resourceName}" {
   scope              = data.azurerm_subscription.current.id
   role_definition_id = azurerm_role_definition.${resourceName}.role_definition_resource_id
-  principal_id       = data.azurerm_client_config.current.object_id
+  principal_id       = var.infoblox_service_principal_id
 }`);
     }
   }

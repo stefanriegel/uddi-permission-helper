@@ -843,6 +843,49 @@ export function getGcpCustomPermissions(selectedFeatureIds) {
 }
 
 /**
+ * Collect org-scoped custom permissions that must not be placed in a
+ * project-level custom role.
+ *
+ * Today this is limited to the multi-project/org feature, whose resource
+ * manager permissions include organization/folder-level capabilities.
+ *
+ * @param {string[]} selectedFeatureIds
+ * @returns {string[]}
+ */
+function getGcpOrganizationCustomPermissions(selectedFeatureIds) {
+  const permSet = new Set();
+  if (selectedFeatureIds.includes('multiProjectOrg')) {
+    for (const permission of GCP_FEATURES.multiProjectOrg.customPermissions) {
+      permSet.add(permission);
+    }
+  }
+  return [...permSet].sort();
+}
+
+/**
+ * Collect project-scoped custom permissions.
+ *
+ * Excludes permissions that are only valid in organization-scoped custom roles.
+ *
+ * @param {string[]} selectedFeatureIds
+ * @returns {string[]}
+ */
+function getGcpProjectCustomPermissions(selectedFeatureIds) {
+  const permSet = new Set();
+  for (const id of selectedFeatureIds) {
+    if (id === 'multiProjectOrg') continue;
+
+    const feature = GCP_FEATURES[id];
+    if (feature && Array.isArray(feature.customPermissions)) {
+      for (const permission of feature.customPermissions) {
+        permSet.add(permission);
+      }
+    }
+  }
+  return [...permSet].sort();
+}
+
+/**
  * Generate gcloud CLI commands for the selected GCP features.
  *
  * Produces `gcloud projects add-iam-policy-binding` commands for predefined
@@ -855,10 +898,10 @@ export function getGcpCustomPermissions(selectedFeatureIds) {
  */
 export function generateGcpPolicy(selectedFeatureIds) {
   const roles = getGcpRoles(selectedFeatureIds);
-  const customPerms = getGcpCustomPermissions(selectedFeatureIds);
-  const hasMultiProject = selectedFeatureIds.includes('multiProjectOrg');
+  const projectCustomPerms = getGcpProjectCustomPermissions(selectedFeatureIds);
+  const orgCustomPerms = getGcpOrganizationCustomPermissions(selectedFeatureIds);
 
-  if (roles.length === 0 && customPerms.length === 0) {
+  if (roles.length === 0 && projectCustomPerms.length === 0 && orgCustomPerms.length === 0) {
     return '';
   }
 
@@ -887,9 +930,22 @@ export function generateGcpPolicy(selectedFeatureIds) {
   --role="${r.role}"`);
   }
 
-  // Custom role creation and binding
-  if (customPerms.length > 0) {
-    const permList = customPerms.join(',');
+  // Organization-level custom role creation and binding
+  if (orgCustomPerms.length > 0) {
+    const permList = orgCustomPerms.join(',');
+    parts.push(`gcloud iam roles create infoblox_uddi_org_custom \\
+  --organization=ORG_ID \\
+  --title="Infoblox UDDI Organization Custom Role" \\
+  --permissions="${permList}"`);
+
+    parts.push(`gcloud organizations add-iam-policy-binding ORG_ID \\
+  --member="serviceAccount:SA_EMAIL" \\
+  --role="organizations/ORG_ID/roles/infoblox_uddi_org_custom"`);
+  }
+
+  // Project-level custom role creation and binding
+  if (projectCustomPerms.length > 0) {
+    const permList = projectCustomPerms.join(',');
     parts.push(`gcloud iam roles create infoblox_uddi_custom \\
   --project=PROJECT_ID \\
   --title="Infoblox UDDI Custom Role" \\
@@ -916,9 +972,10 @@ export function generateGcpPolicy(selectedFeatureIds) {
  */
 export function generateGcpTerraform(selectedFeatureIds) {
   const roles = getGcpRoles(selectedFeatureIds);
-  const customPerms = getGcpCustomPermissions(selectedFeatureIds);
+  const projectCustomPerms = getGcpProjectCustomPermissions(selectedFeatureIds);
+  const orgCustomPerms = getGcpOrganizationCustomPermissions(selectedFeatureIds);
 
-  if (roles.length === 0 && customPerms.length === 0) {
+  if (roles.length === 0 && projectCustomPerms.length === 0 && orgCustomPerms.length === 0) {
     return '';
   }
 
@@ -956,9 +1013,29 @@ export function generateGcpTerraform(selectedFeatureIds) {
 }`);
   }
 
-  // Custom role + binding
-  if (customPerms.length > 0) {
-    const permsHcl = customPerms.map(p => `    "${p}"`).join(',\n');
+  // Organization-level custom role + binding
+  if (orgCustomPerms.length > 0) {
+    const permsHcl = orgCustomPerms.map(p => `    "${p}"`).join(',\n');
+    parts.push(`resource "google_organization_iam_custom_role" "infoblox_uddi_org_custom" {
+  org_id      = var.organization_id
+  role_id     = "infobloxUddiOrgCustom"
+  title       = "Infoblox UDDI Organization Custom Role"
+  description = "Infoblox Universal DDI - Organization-scoped discovery permissions"
+  permissions = [
+${permsHcl}
+  ]
+}
+
+resource "google_organization_iam_member" "infoblox_uddi_org_custom" {
+  org_id = var.organization_id
+  role   = google_organization_iam_custom_role.infoblox_uddi_org_custom.id
+  member = "serviceAccount:\${var.service_account_email}"
+}`);
+  }
+
+  // Project-level custom role + binding
+  if (projectCustomPerms.length > 0) {
+    const permsHcl = projectCustomPerms.map(p => `    "${p}"`).join(',\n');
     parts.push(`resource "google_project_iam_custom_role" "infoblox_uddi_custom" {
   project     = var.project_id
   role_id     = "infobloxUddiCustom"
@@ -992,7 +1069,8 @@ resource "google_project_iam_member" "infoblox_uddi_custom" {
 export function generateGcpGuide(selectedFeatureIds) {
   const roles = getGcpRoles(selectedFeatureIds);
   const customPerms = getGcpCustomPermissions(selectedFeatureIds);
-  const hasMultiProject = selectedFeatureIds.includes('multiProjectOrg');
+  const orgCustomPerms = getGcpOrganizationCustomPermissions(selectedFeatureIds);
+  const projectCustomPerms = getGcpProjectCustomPermissions(selectedFeatureIds);
 
   if (roles.length === 0 && customPerms.length === 0) {
     return '';
@@ -1046,12 +1124,21 @@ export function generateGcpGuide(selectedFeatureIds) {
     stepNum++;
   }
 
-  // Custom role creation
-  if (customPerms.length > 0) {
-    steps.push(`${stepNum}. Navigate to IAM & Admin > Roles and click "Create Role". Name it "Infoblox UDDI Custom Role" and add the following ${customPerms.length} permissions: ${customPerms.join(', ')}.`);
+  // Organization-level custom role creation
+  if (orgCustomPerms.length > 0) {
+    steps.push(`${stepNum}. At the organization level, navigate to IAM & Admin > Roles and create an organization-scoped custom role named "Infoblox UDDI Organization Custom Role" with the following ${orgCustomPerms.length} permissions: ${orgCustomPerms.join(', ')}.`);
     stepNum++;
 
-    steps.push(`${stepNum}. Navigate to IAM & Admin > IAM. Click "Grant Access", add the service account, and assign the custom role created in the previous step.`);
+    steps.push(`${stepNum}. At the organization level in IAM & Admin > IAM, grant the service account the organization custom role created in the previous step.`);
+    stepNum++;
+  }
+
+  // Project-level custom role creation
+  if (projectCustomPerms.length > 0) {
+    steps.push(`${stepNum}. Navigate to IAM & Admin > Roles and click "Create Role". Name it "Infoblox UDDI Custom Role" and add the following ${projectCustomPerms.length} permissions: ${projectCustomPerms.join(', ')}.`);
+    stepNum++;
+
+    steps.push(`${stepNum}. Navigate to IAM & Admin > IAM. Click "Grant Access", add the service account, and assign the project-level custom role created in the previous step.`);
     stepNum++;
   }
 

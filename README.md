@@ -1,12 +1,12 @@
 # UDDI Permission Scope Helper
 
-A static micro site that helps Infoblox Universal DDI customers generate least-privilege IAM permission policies for AWS, Azure, and GCP cloud integrations. Customers select which discovery and management features they need, and the site outputs ready-to-use IAM policies, Terraform snippets, and step-by-step setup instructions — enabling security-team-approved policies in under 2 minutes.
+A static micro site that helps Infoblox Universal DDI customers generate least-privilege IAM permission policies for AWS, Azure, and GCP cloud integrations. Customers select which discovery and management features they need, and the site outputs ready-to-use IAM policies, hyperscaler-specific cloud CLI commands, Terraform snippets, and step-by-step setup instructions — enabling security-team-approved policies in under 2 minutes.
 
 ## Features
 
 - Wizard mode for guided feature selection
 - Advanced mode with direct checkboxes
-- Three output formats: native policy, Terraform HCL, step-by-step guide
+- Four output formats: policy, cloud CLI, Terraform HCL, step-by-step guide
 - AWS policy size warning when approaching IAM managed policy limits
 - Copy to clipboard and file download
 - Works offline after first visit

@@ -202,7 +202,7 @@ describe('generateAzureTerraform', () => {
     assert.ok(result.includes('"Reader"'), 'should reference Reader');
     assert.ok(result.includes('azurerm_role_assignment'), 'should have role assignment');
     assert.ok(result.includes('azurerm_subscription'), 'should have subscription data source');
-    assert.ok(result.includes('azurerm_client_config'), 'should have client config data source');
+    assert.ok(result.includes('var.infoblox_service_principal_id'), 'should assign to Infoblox service principal');
     // Should NOT have a custom role definition resource
     assert.ok(!result.includes('resource "azurerm_role_definition"'), 'should NOT create custom role definition');
   });

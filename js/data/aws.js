@@ -644,6 +644,122 @@ export function generateAwsPolicy(selectedFeatureIds) {
 }
 
 /**
+ * Generate AWS CLI commands for the selected feature set.
+ *
+ * Produces CLI-ready commands using `aws iam create-policy`, `aws iam create-role`,
+ * and `aws iam attach-role-policy`, with heredocs for the policy documents.
+ *
+ * @param {string[]} selectedFeatureIds - Array of feature ID keys from AWS_FEATURES
+ * @returns {string} AWS CLI command sequence
+ */
+export function generateAwsCli(selectedFeatureIds) {
+  const actions = getAwsActions(selectedFeatureIds);
+  const parts = [];
+  const hasMultiAccount = selectedFeatureIds.includes('multiAccount');
+
+  if (actions.length > 0) {
+    const policyJson = generateAwsPolicy(selectedFeatureIds);
+    parts.push(`# Create the managed policy for the selected AWS permissions
+cat > infoblox-uddi-policy.json <<'EOF'
+${policyJson}
+EOF
+
+aws iam create-policy \\
+  --policy-name "InfobloxUDDI-Discovery" \\
+  --description "Infoblox Universal DDI - Combined discovery permissions" \\
+  --policy-document file://infoblox-uddi-policy.json
+
+aws iam attach-role-policy \\
+  --role-name "<DISCOVERY_ROLE_NAME>" \\
+  --policy-arn "arn:aws:iam::<ACCOUNT_ID>:policy/InfobloxUDDI-Discovery"`);
+  }
+
+  if (hasMultiAccount) {
+    parts.push(`# Management account: role trusted by Infoblox to enumerate AWS Organizations
+cat > infoblox-uddi-management-trust-policy.json <<'EOF'
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": "arn:aws:iam::902917483333:root"
+      },
+      "Action": "sts:AssumeRole",
+      "Condition": {
+        "ForAnyValue:StringEquals": {
+          "sts:ExternalId": [
+            "<INFOBLOX_EXTERNAL_ID>"
+          ]
+        }
+      }
+    }
+  ]
+}
+EOF
+
+aws iam create-role \\
+  --role-name "InfobloxUDDI-ManagementRole" \\
+  --assume-role-policy-document file://infoblox-uddi-management-trust-policy.json
+
+aws iam attach-role-policy \\
+  --role-name "InfobloxUDDI-ManagementRole" \\
+  --policy-arn "arn:aws:iam::aws:policy/AWSOrganizationsReadOnlyAccess"
+
+cat > infoblox-uddi-sts-assume-role-policy.json <<'EOF'
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": "sts:AssumeRole",
+      "Resource": "arn:aws:iam::*:role/InfobloxUDDI-DiscoveryRole"
+    }
+  ]
+}
+EOF
+
+aws iam create-policy \\
+  --policy-name "InfobloxUDDI-STSAssumeRole" \\
+  --description "Infoblox Universal DDI - Allow assuming discovery role in sub-accounts" \\
+  --policy-document file://infoblox-uddi-sts-assume-role-policy.json
+
+aws iam attach-role-policy \\
+  --role-name "InfobloxUDDI-ManagementRole" \\
+  --policy-arn "arn:aws:iam::<MANAGEMENT_ACCOUNT_ID>:policy/InfobloxUDDI-STSAssumeRole"
+
+# Sub-account: role trusted by Infoblox for discovery in each member account
+cat > infoblox-uddi-discovery-trust-policy.json <<'EOF'
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": "arn:aws:iam::902917483333:root"
+      },
+      "Action": "sts:AssumeRole",
+      "Condition": {
+        "ForAnyValue:StringEquals": {
+          "sts:ExternalId": [
+            "<INFOBLOX_EXTERNAL_ID>"
+          ]
+        }
+      }
+    }
+  ]
+}
+EOF
+
+aws iam create-role \\
+  --role-name "InfobloxUDDI-DiscoveryRole" \\
+  --assume-role-policy-document file://infoblox-uddi-discovery-trust-policy.json`);
+  }
+
+  return parts.join('\n\n');
+}
+
+/**
  * Generate combined Terraform HCL for selected AWS features.
  *
  * Produces a single aws_iam_policy resource with all deduplicated actions.
@@ -656,6 +772,7 @@ export function generateAwsPolicy(selectedFeatureIds) {
 export function generateAwsTerraform(selectedFeatureIds) {
   const actions = getAwsActions(selectedFeatureIds);
   const parts = [];
+  const hasMultiAccount = selectedFeatureIds.includes('multiAccount');
 
   if (actions.length > 0) {
     // Split S3 bucket-level actions (support arn:aws:s3:::*) from others (require Resource = "*")
@@ -705,8 +822,31 @@ ${statementsHcl.join(',\n')}
 }`);
   }
 
-  if (selectedFeatureIds.includes('multiAccount')) {
-    parts.push(`# Sub-account: Discovery role with trust policy
+  if (hasMultiAccount) {
+    parts.push(`# Management account: Role assumed by Infoblox to enumerate the organization
+resource "aws_iam_role" "infoblox_uddi_management_role" {
+  name = "InfobloxUDDI-ManagementRole"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Principal = {
+          AWS = "arn:aws:iam::902917483333:root"
+        }
+        Action = "sts:AssumeRole"
+        Condition = {
+          "ForAnyValue:StringEquals" = {
+            "sts:ExternalId" = [var.infoblox_external_id]
+          }
+        }
+      }
+    ]
+  })
+}
+
+# Sub-account: Discovery role with trust policy
 resource "aws_iam_role" "infoblox_uddi_discovery_role" {
   name = "InfobloxUDDI-DiscoveryRole"
 
@@ -750,6 +890,18 @@ resource "aws_iam_policy" "infoblox_uddi_sts_assume_role" {
       }
     ]
   })
+}
+
+resource "aws_iam_role_policy_attachment" "infoblox_uddi_sts_assume_role" {
+  role       = aws_iam_role.infoblox_uddi_management_role.name
+  policy_arn = aws_iam_policy.infoblox_uddi_sts_assume_role.arn
+}`);
+  }
+
+  if (actions.length > 0 && hasMultiAccount) {
+    parts.push(`resource "aws_iam_role_policy_attachment" "infoblox_uddi_discovery" {
+  role       = aws_iam_role.infoblox_uddi_discovery_role.name
+  policy_arn = aws_iam_policy.infoblox_uddi_discovery.arn
 }`);
   }
 

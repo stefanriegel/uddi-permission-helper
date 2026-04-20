@@ -99,9 +99,9 @@ describe('getGcpCustomPermissions', () => {
     assert.equal(result.length, 21);
   });
 
-  it('returns exactly 25 permissions for assetDiscovery', () => {
+  it('returns exactly 27 permissions for assetDiscovery', () => {
     const result = getGcpCustomPermissions(['assetDiscovery']);
-    assert.equal(result.length, 25);
+    assert.equal(result.length, 27);
   });
 
   it('returns exactly 13 permissions for internalRanges', () => {
@@ -109,16 +109,16 @@ describe('getGcpCustomPermissions', () => {
     assert.equal(result.length, 13);
   });
 
-  it('returns exactly 5 permissions for dnsReadOnly', () => {
+  it('returns exactly 7 permissions for dnsReadOnly', () => {
     const result = getGcpCustomPermissions(['dnsReadOnly']);
-    assert.equal(result.length, 5);
+    assert.equal(result.length, 7);
     assert.ok(result.includes('dns.managedZones.get'));
     assert.ok(result.includes('dns.resourceRecordSets.list'));
   });
 
-  it('returns exactly 13 permissions for dnsReadWrite', () => {
+  it('returns exactly 15 permissions for dnsReadWrite', () => {
     const result = getGcpCustomPermissions(['dnsReadWrite']);
-    assert.equal(result.length, 13);
+    assert.equal(result.length, 15);
     assert.ok(result.includes('dns.managedZones.create'));
     assert.ok(result.includes('dns.resourceRecordSets.delete'));
   });
@@ -225,6 +225,8 @@ describe('generateGcpTerraform', () => {
     const result = generateGcpTerraform(['multiProjectOrg']);
     assert.ok(result.includes('google_organization_iam_member'));
     assert.ok(result.includes('google_folder_iam_member'));
+    assert.ok(result.includes('google_organization_iam_custom_role'));
+    assert.ok(!result.includes('google_project_iam_custom_role'));
   });
 });
 

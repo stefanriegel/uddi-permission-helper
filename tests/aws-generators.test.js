@@ -10,6 +10,7 @@ import {
   AWS_FEATURES,
   getAwsActions,
   generateAwsPolicy,
+  generateAwsCli,
   generateAwsTerraform,
   generateAwsGuide
 } from '../js/data/aws.js';
@@ -141,6 +142,23 @@ describe('generateAwsPolicy', () => {
 
 // --- generateAwsTerraform ---
 
+describe('generateAwsCli', () => {
+  it('contains create-policy and attach-role-policy for standard features', () => {
+    const cli = generateAwsCli(['vpcIpamDiscovery']);
+    assert.ok(cli.includes('aws iam create-policy'));
+    assert.ok(cli.includes('aws iam attach-role-policy'));
+    assert.ok(cli.includes('infoblox-uddi-policy.json'));
+  });
+
+  it('contains create-role and organizations attachment for multiAccount', () => {
+    const cli = generateAwsCli(['multiAccount']);
+    assert.ok(cli.includes('aws iam create-role'));
+    assert.ok(cli.includes('AWSOrganizationsReadOnlyAccess'));
+    assert.ok(cli.includes('InfobloxUDDI-ManagementRole'));
+    assert.ok(cli.includes('InfobloxUDDI-DiscoveryRole'));
+  });
+});
+
 describe('generateAwsTerraform', () => {
   it('contains aws_iam_policy resource for standard features', () => {
     const tf = generateAwsTerraform(['vpcIpamDiscovery']);
@@ -151,6 +169,8 @@ describe('generateAwsTerraform', () => {
     const tf = generateAwsTerraform(['multiAccount']);
     assert.ok(tf.includes('aws_iam_role'), 'should contain aws_iam_role');
     assert.ok(tf.includes('assume_role_policy'), 'should contain assume_role_policy');
+    assert.ok(tf.includes('infoblox_uddi_management_role'), 'should contain management role');
+    assert.ok(tf.includes('aws_iam_role_policy_attachment'), 'should attach management policies');
   });
 
   it('contains combined policy for multiple features', () => {
@@ -162,6 +182,7 @@ describe('generateAwsTerraform', () => {
     const tf = generateAwsTerraform(['vpcIpamDiscovery', 'multiAccount']);
     assert.ok(tf.includes('resource "aws_iam_policy"'), 'should have policy');
     assert.ok(tf.includes('aws_iam_role'), 'should have role');
+    assert.ok(tf.includes('policy_arn = aws_iam_policy.infoblox_uddi_discovery.arn'), 'should attach discovery policy to sub-account role');
   });
 
   it('produces split Resource blocks when S3 features included', () => {

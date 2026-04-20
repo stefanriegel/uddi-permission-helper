@@ -76,9 +76,11 @@
     <section class="output" aria-label="Policy output">
       <div class="output__tabs" role="tablist" aria-label="Output format">
         <button class="output__tab output__tab--active" role="tab" id="tab-policy" aria-selected="true" aria-controls="panel-policy">Policy</button>
+        <button class="output__tab" role="tab" id="tab-cli" aria-selected="false" aria-controls="panel-cli">Cloud CLI</button>
         <button class="output__tab" role="tab" id="tab-terraform" aria-selected="false" aria-controls="panel-terraform">Terraform</button>
         <button class="output__tab" role="tab" id="tab-guide" aria-selected="false" aria-controls="panel-guide">Setup Guide</button>
       </div>
+      <p class="output__hint">Policy shows the native permission model. Cloud CLI shows executable provider-specific commands.</p>
       <div class="output__toolbar">
         <span class="output__badge">0 permissions</span>
         <button class="output__action" type="button" data-action="copy">Copy</button>
@@ -86,6 +88,7 @@
       </div>
       <div class="output__content">
         <div class="output__panel" role="tabpanel" id="panel-policy" aria-labelledby="tab-policy">Select a cloud provider and features to generate your permission policy.</div>
+        <div class="output__panel" role="tabpanel" id="panel-cli" aria-labelledby="tab-cli" hidden></div>
         <div class="output__panel" role="tabpanel" id="panel-terraform" aria-labelledby="tab-terraform" hidden></div>
         <div class="output__panel" role="tabpanel" id="panel-guide" aria-labelledby="tab-guide" hidden></div>
       </div>
