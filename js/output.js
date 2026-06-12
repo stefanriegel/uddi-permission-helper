@@ -2,11 +2,11 @@
  * Output rendering module for UDDI Permission Scope Helper.
  *
  * Dispatches to provider-specific generators and renders Policy, Cloud CLI,
- * Terraform, and Setup Guide content into the output panel tabs. Injects inline rationale
- * comments into Policy output and updates the permission count badge.
+ * Terraform, and Setup Guide content into the output panel tabs, and updates
+ * the permission count badge.
  */
 
-import { AWS_FEATURES, getAwsActions, generateAwsPolicy, generateAwsCli, generateAwsTerraform, generateAwsGuide } from './data/aws.js';
+import { getAwsActions, generateAwsPolicy, generateAwsCli, generateAwsTerraform, generateAwsGuide } from './data/aws.js';
 import { AZURE_FEATURES, getAzureRoles, getAzureCustomRoles, generateAzurePolicy, generateAzureTerraform, generateAzureGuide } from './data/azure.js';
 import { GCP_FEATURES, getGcpRoles, getGcpCustomPermissions, generateGcpPolicy, generateGcpTerraform, generateGcpGuide } from './data/gcp.js';
 
@@ -29,67 +29,15 @@ function escapeHtml(str) {
 }
 
 /**
- * Build an annotated AWS policy string with rationale comments above each action.
+ * Build the deployable AWS IAM policy shown and downloaded by the UI.
  *
  * @param {string[]} selectedIds - Selected feature IDs
- * @returns {string} Annotated JSON-like policy with // comments
+ * @returns {string} Valid JSON policy
  */
-function buildAnnotatedAwsPolicy(selectedIds) {
-  const actions = getAwsActions(selectedIds);
-  if (actions.length === 0) return '';
-
-  // Build a mapping from action string to rationale
-  const rationaleMap = {};
-  for (const id of selectedIds) {
-    const feature = AWS_FEATURES[id];
-    if (feature && feature.rationale) {
-      for (const [action, reason] of Object.entries(feature.rationale)) {
-        if (!rationaleMap[action]) {
-          rationaleMap[action] = reason;
-        }
-      }
-    }
-  }
-
-  // Build valid JSON (no comments — JSON does not allow them)
-  const actionStrings = actions.map((a, i) =>
-    `        "${a}"` + (i < actions.length - 1 ? ',' : '')
-  );
-
-  // Handle multiAccount policies info
-  const hasMultiAccount = selectedIds.includes('multiAccount');
-
-  let output = `{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Sid": "InfobloxUDDIPermissions",
-      "Effect": "Allow",
-      "Action": [
-${actionStrings.join('\n')}
-      ],
-      "Resource": "*"
-    }
-  ]
-}`;
-
-  // Append rationale as a separate reference section (not inside JSON)
-  const rationaleLines = [];
-  for (const action of actions) {
-    const rationale = rationaleMap[action];
-    if (rationale) {
-      rationaleLines.push(`  ${action} — ${rationale}`);
-    }
-  }
-  if (rationaleLines.length > 0) {
-    output += `\n\n/* Permission Rationale:\n${rationaleLines.join('\n')}\n*/`;
-  }
-
-  if (hasMultiAccount) {
-    output += `\n\n/* Multi-Account: Additional policies required\n   - Trust Policy: Allows Infoblox service to assume discovery role\n   - AWSOrganizationsReadOnlyAccess: Lists organization accounts\n   - STS AssumeRole: Permits assuming discovery role in sub-accounts\n*/`;
-  }
-
-  return output;
+export function buildAnnotatedAwsPolicy(selectedIds) {
+  return getAwsActions(selectedIds).length > 0
+    ? generateAwsPolicy(selectedIds)
+    : '';
 }
 
 /**
@@ -109,7 +57,7 @@ function buildAnnotatedAwsCli(selectedIds) {
   }
 
   if (selectedIds.includes('multiAccount')) {
-    sections.push('# Create the management-account and sub-account roles required for multi-account discovery');
+    sections.push('# Create the directly trusted discovery role in each configured AWS account');
   }
 
   return sections.length > 0 ? `${sections.join('\n')}\n\n${rawOutput}` : rawOutput;
@@ -455,10 +403,6 @@ export function updateBadge(providerId, features) {
 
   if (providerId === 'aws') {
     count = getAwsActions(selectedIds).length;
-    // Add policy count for multiAccount (3 policies)
-    if (selectedIds.includes('multiAccount')) {
-      count += 3;
-    }
   } else if (providerId === 'azure') {
     count = getAzureRoles(selectedIds).length;
     // Add deduplicated custom role permission counts

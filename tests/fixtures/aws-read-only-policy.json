@@ -1,0 +1,143 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "S3BucketMetadataReadOnly",
+      "Effect": "Allow",
+      "Action": [
+        "s3:ListAllMyBuckets",
+        "s3:GetBucketLocation",
+        "s3:GetBucketWebsite",
+        "s3:GetBucketPublicAccessBlock",
+        "s3:GetBucketAcl",
+        "s3:GetBucketPolicy",
+        "s3:GetBucketPolicyStatus"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "VPCSubnetRouteReadOnly",
+      "Effect": "Allow",
+      "Action": [
+        "ec2:DescribeRegions",
+        "ec2:DescribeVpcs",
+        "ec2:DescribeVpcAttribute",
+        "ec2:DescribeVpcPeeringConnections",
+        "ec2:DescribeSubnets",
+        "ec2:DescribeRouteTables",
+        "ec2:DescribeAvailabilityZones",
+        "ec2:DescribeManagedPrefixLists",
+        "ec2:DescribeInternetGateways",
+        "ec2:DescribeEgressOnlyInternetGateways",
+        "ec2:DescribeNatGateways",
+        "ec2:DescribeTransitGateways",
+        "ec2:DescribeTransitGatewayVpcAttachments",
+        "ec2:DescribeTransitGatewayPeeringAttachments",
+        "ec2:DescribeAddresses",
+        "ec2:DescribeNetworkAcls",
+        "ec2:DescribeNetworkInterfaces",
+        "ec2:DescribeVpcEndpoints",
+        "ec2:DescribeVpnConnections",
+        "ec2:DescribeVpnGateways",
+        "ec2:DescribeCustomerGateways"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "IPAMReadOnly",
+      "Effect": "Allow",
+      "Action": [
+        "ec2:DescribeIpams",
+        "ec2:DescribeIpamPools",
+        "ec2:DescribeIpamScopes",
+        "ec2:DescribeIpamResourceDiscoveries",
+        "ec2:GetIpamPoolCidrs",
+        "ec2:GetIpamPoolAllocations",
+        "ec2:GetIpamResourceCidrs"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "SecurityGroupReadOnly",
+      "Effect": "Allow",
+      "Action": [
+        "ec2:DescribeSecurityGroups",
+        "ec2:DescribeSecurityGroupRules",
+        "ec2:DescribeSecurityGroupReferences",
+        "ec2:DescribeStaleSecurityGroups",
+        "ec2:DescribeInstances"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "StorageVolumeReadOnly",
+      "Effect": "Allow",
+      "Action": [
+        "ec2:DescribeVolumes",
+        "ec2:DescribeVolumeStatus",
+        "ec2:DescribeSnapshots",
+        "ec2:DescribeSnapshotAttribute"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "LoadBalancerReadOnly",
+      "Effect": "Allow",
+      "Action": [
+        "elasticloadbalancing:DescribeLoadBalancers",
+        "elasticloadbalancing:DescribeLoadBalancerAttributes",
+        "elasticloadbalancing:DescribeListeners",
+        "elasticloadbalancing:DescribeRules",
+        "elasticloadbalancing:DescribeTargetGroups",
+        "elasticloadbalancing:DescribeTargetHealth"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "DirectConnectReadOnly",
+      "Effect": "Allow",
+      "Action": [
+        "directconnect:DescribeDirectConnectGateways",
+        "directconnect:DescribeDirectConnectGatewayAttachments",
+        "directconnect:DescribeConnections",
+        "directconnect:DescribeVirtualInterfaces"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "CloudWatchReadOnly",
+      "Effect": "Allow",
+      "Action": [
+        "cloudwatch:ListMetrics",
+        "cloudwatch:GetMetricStatistics",
+        "cloudwatch:GetMetricData"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "Route53ReadOnly",
+      "Effect": "Allow",
+      "Action": [
+        "route53:GetHostedZone",
+        "route53:ListHostedZones",
+        "route53:ListResourceRecordSets",
+        "route53:ListTagsForResources",
+        "route53:ListQueryLoggingConfigs",
+        "route53:GetHealthCheck",
+        "route53:ListHealthChecks"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "Route53ResolverReadOnly",
+      "Effect": "Allow",
+      "Action": [
+        "route53resolver:ListResolverEndpoints",
+        "route53resolver:ListResolverEndpointIpAddresses",
+        "route53resolver:ListResolverRules",
+        "route53resolver:ListResolverRuleAssociations"
+      ],
+      "Resource": "*"
+    }
+  ]
+}

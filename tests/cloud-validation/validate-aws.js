@@ -13,6 +13,7 @@
  */
 
 import { printReport } from './lib/reporter.js';
+import { createAwsValidationTests } from './aws-validation-tests.js';
 import { STSClient, GetCallerIdentityCommand } from '@aws-sdk/client-sts';
 import { EC2Client, DescribeVpcsCommand, DescribeSubnetsCommand, DescribeAddressesCommand, DescribeRouteTablesCommand, DescribeInternetGatewaysCommand, DescribeEgressOnlyInternetGatewaysCommand, DescribeNatGatewaysCommand, DescribeCustomerGatewaysCommand, DescribeVpnGatewaysCommand, DescribeVpnConnectionsCommand, DescribeVpcEndpointsCommand, DescribeVpcPeeringConnectionsCommand, DescribeTransitGatewaysCommand, DescribeTransitGatewayVpcAttachmentsCommand, DescribeTransitGatewayPeeringAttachmentsCommand, DescribeIpamsCommand, DescribeIpamScopesCommand, DescribeIpamPoolsCommand, DescribeInstancesCommand, DescribeVolumesCommand, DescribeNetworkInterfacesCommand, DescribeSecurityGroupsCommand, DescribeRegionsCommand, DescribeAvailabilityZonesCommand } from '@aws-sdk/client-ec2';
 import { Route53Client, ListHostedZonesCommand, ListHealthChecksCommand } from '@aws-sdk/client-route-53';
@@ -95,7 +96,7 @@ const elb = new ElasticLoadBalancingV2Client(clientConfig);
 const dc = new DirectConnectClient(clientConfig);
 
 /** @type {Array<{action: string, feature: string, fn: () => Promise<any>}>} */
-const tests = [
+const implementedTests = [
   // --- vpcIpamDiscovery ---
   { action: 'ec2:DescribeVpcs', feature: 'vpcIpamDiscovery', fn: () => ec2.send(new DescribeVpcsCommand({ MaxResults: 5 })) },
   { action: 'ec2:DescribeSubnets', feature: 'vpcIpamDiscovery', fn: () => ec2.send(new DescribeSubnetsCommand({ MaxResults: 5 })) },
@@ -165,13 +166,15 @@ const tests = [
   { action: 'ec2:DescribeAvailabilityZones', feature: 'cloudForwardingFull', fn: () => ec2.send(new DescribeAvailabilityZonesCommand({})) },
 ];
 
+const tests = createAwsValidationTests(implementedTests);
+
 // Run all tests
 console.log(`Testing ${tests.length} AWS actions against ${region}...\n`);
 
 const results = [];
 for (const test of tests) {
   if (!test.fn) {
-    results.push({ action: test.action, feature: test.feature, status: 'skip', detail: 'requires resource ID or write action' });
+    results.push({ action: test.action, feature: test.feature, status: 'skip', detail: 'no automated SDK check' });
     continue;
   }
 

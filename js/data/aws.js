@@ -1,10 +1,155 @@
 /**
  * AWS permission data for UDDI Permission Scope Helper.
  *
- * Six feature categories with exact IAM actions, Terraform HCL templates,
- * setup guides, and per-action rationale strings. All data sourced from
- * the Infoblox Universal DDI Admin Guide.
+ * AWS IAM permission data, Terraform HCL templates, setup guides, and
+ * per-action rationale strings. The shared read-only baseline is sourced
+ * from the Infoblox AWS Least Privilege IAM Permissions article.
  */
+
+export const AWS_READ_ONLY_POLICY_STATEMENTS = [
+  {
+    Sid: 'S3BucketMetadataReadOnly',
+    Effect: 'Allow',
+    Action: [
+      's3:ListAllMyBuckets',
+      's3:GetBucketLocation',
+      's3:GetBucketWebsite',
+      's3:GetBucketPublicAccessBlock',
+      's3:GetBucketAcl',
+      's3:GetBucketPolicy',
+      's3:GetBucketPolicyStatus'
+    ],
+    Resource: '*'
+  },
+  {
+    Sid: 'VPCSubnetRouteReadOnly',
+    Effect: 'Allow',
+    Action: [
+      'ec2:DescribeRegions',
+      'ec2:DescribeVpcs',
+      'ec2:DescribeVpcAttribute',
+      'ec2:DescribeVpcPeeringConnections',
+      'ec2:DescribeSubnets',
+      'ec2:DescribeRouteTables',
+      'ec2:DescribeAvailabilityZones',
+      'ec2:DescribeManagedPrefixLists',
+      'ec2:DescribeInternetGateways',
+      'ec2:DescribeEgressOnlyInternetGateways',
+      'ec2:DescribeNatGateways',
+      'ec2:DescribeTransitGateways',
+      'ec2:DescribeTransitGatewayVpcAttachments',
+      'ec2:DescribeTransitGatewayPeeringAttachments',
+      'ec2:DescribeAddresses',
+      'ec2:DescribeNetworkAcls',
+      'ec2:DescribeNetworkInterfaces',
+      'ec2:DescribeVpcEndpoints',
+      'ec2:DescribeVpnConnections',
+      'ec2:DescribeVpnGateways',
+      'ec2:DescribeCustomerGateways'
+    ],
+    Resource: '*'
+  },
+  {
+    Sid: 'IPAMReadOnly',
+    Effect: 'Allow',
+    Action: [
+      'ec2:DescribeIpams',
+      'ec2:DescribeIpamPools',
+      'ec2:DescribeIpamScopes',
+      'ec2:DescribeIpamResourceDiscoveries',
+      'ec2:GetIpamPoolCidrs',
+      'ec2:GetIpamPoolAllocations',
+      'ec2:GetIpamResourceCidrs'
+    ],
+    Resource: '*'
+  },
+  {
+    Sid: 'SecurityGroupReadOnly',
+    Effect: 'Allow',
+    Action: [
+      'ec2:DescribeSecurityGroups',
+      'ec2:DescribeSecurityGroupRules',
+      'ec2:DescribeSecurityGroupReferences',
+      'ec2:DescribeStaleSecurityGroups',
+      'ec2:DescribeInstances'
+    ],
+    Resource: '*'
+  },
+  {
+    Sid: 'StorageVolumeReadOnly',
+    Effect: 'Allow',
+    Action: [
+      'ec2:DescribeVolumes',
+      'ec2:DescribeVolumeStatus',
+      'ec2:DescribeSnapshots',
+      'ec2:DescribeSnapshotAttribute'
+    ],
+    Resource: '*'
+  },
+  {
+    Sid: 'LoadBalancerReadOnly',
+    Effect: 'Allow',
+    Action: [
+      'elasticloadbalancing:DescribeLoadBalancers',
+      'elasticloadbalancing:DescribeLoadBalancerAttributes',
+      'elasticloadbalancing:DescribeListeners',
+      'elasticloadbalancing:DescribeRules',
+      'elasticloadbalancing:DescribeTargetGroups',
+      'elasticloadbalancing:DescribeTargetHealth'
+    ],
+    Resource: '*'
+  },
+  {
+    Sid: 'DirectConnectReadOnly',
+    Effect: 'Allow',
+    Action: [
+      'directconnect:DescribeDirectConnectGateways',
+      'directconnect:DescribeDirectConnectGatewayAttachments',
+      'directconnect:DescribeConnections',
+      'directconnect:DescribeVirtualInterfaces'
+    ],
+    Resource: '*'
+  },
+  {
+    Sid: 'CloudWatchReadOnly',
+    Effect: 'Allow',
+    Action: [
+      'cloudwatch:ListMetrics',
+      'cloudwatch:GetMetricStatistics',
+      'cloudwatch:GetMetricData'
+    ],
+    Resource: '*'
+  },
+  {
+    Sid: 'Route53ReadOnly',
+    Effect: 'Allow',
+    Action: [
+      'route53:GetHostedZone',
+      'route53:ListHostedZones',
+      'route53:ListResourceRecordSets',
+      'route53:ListTagsForResources',
+      'route53:ListQueryLoggingConfigs',
+      'route53:GetHealthCheck',
+      'route53:ListHealthChecks'
+    ],
+    Resource: '*'
+  },
+  {
+    Sid: 'Route53ResolverReadOnly',
+    Effect: 'Allow',
+    Action: [
+      'route53resolver:ListResolverEndpoints',
+      'route53resolver:ListResolverEndpointIpAddresses',
+      'route53resolver:ListResolverRules',
+      'route53resolver:ListResolverRuleAssociations'
+    ],
+    Resource: '*'
+  }
+];
+
+export const AWS_SHARED_READ_ONLY_ACTIONS = [
+  ...new Set(AWS_READ_ONLY_POLICY_STATEMENTS.flatMap(statement => statement.Action))
+].sort();
 
 const vpcIpamDiscovery = {
   id: 'vpcIpamDiscovery',
@@ -441,12 +586,12 @@ const multiAccount = {
   id: 'multiAccount',
   product: 'both',
   name: 'Multi-Account',
-  question: 'Cross-account discovery via AWS Organizations?',
+  question: 'Discovery across multiple AWS accounts?',
   policies: [
     {
       name: 'Trust Policy',
       type: 'trust',
-      description: 'IAM role trust policy for sub-account discovery roles. Allows the Infoblox UDDI service to assume the role with External ID verification.',
+      description: 'IAM role trust policy for each account. Allows the Infoblox UDDI service to assume the role with External ID verification.',
       document: {
         Version: '2012-10-17',
         Statement: [
@@ -460,36 +605,12 @@ const multiAccount = {
           }
         ]
       }
-    },
-    {
-      name: 'Organizations Read-Only',
-      type: 'organizations',
-      description: 'AWS managed policy for listing organization accounts. Attach to the management account IAM user or role.',
-      managedPolicyArn: 'arn:aws:iam::aws:policy/AWSOrganizationsReadOnlyAccess',
-      document: null
-    },
-    {
-      name: 'STS AssumeRole',
-      type: 'sts',
-      description: 'Allows the management account to assume the discovery role in each sub-account.',
-      document: {
-        Version: '2012-10-17',
-        Statement: [
-          {
-            Effect: 'Allow',
-            Action: 'sts:AssumeRole',
-            Resource: 'arn:aws:iam::*:role/InfobloxUDDI-DiscoveryRole'
-          }
-        ]
-      }
     }
   ],
   rationale: {
-    'Trust Policy': 'Allows Infoblox UDDI service account to assume the discovery role in sub-accounts with External ID for security',
-    'Organizations Read-Only': 'Enables listing all accounts in the AWS Organization for automated multi-account discovery',
-    'STS AssumeRole': 'Permits the management account to assume the discovery role in each sub-account'
+    'Trust Policy': 'Allows the Infoblox UDDI service account to assume the discovery role directly in each configured AWS account with External ID verification'
   },
-  terraform: `# Sub-account: Discovery role with trust policy
+  terraform: `# Repeat this role in every AWS account that Infoblox should discover.
 resource "aws_iam_role" "infoblox_uddi_discovery_role" {
   name = "InfobloxUDDI-DiscoveryRole"
 
@@ -510,38 +631,11 @@ resource "aws_iam_role" "infoblox_uddi_discovery_role" {
       }
     ]
   })
-}
-
-# Sub-account: Attach discovery policies to the role
-# (attach the individual feature policies created above)
-
-# Management account: Organizations read-only access
-resource "aws_iam_role_policy_attachment" "infoblox_uddi_org_readonly" {
-  role       = aws_iam_role.infoblox_uddi_management_role.name
-  policy_arn = "arn:aws:iam::aws:policy/AWSOrganizationsReadOnlyAccess"
-}
-
-# Management account: STS AssumeRole policy
-resource "aws_iam_policy" "infoblox_uddi_sts_assume_role" {
-  name        = "InfobloxUDDI-STSAssumeRole"
-  description = "Infoblox Universal DDI - Allow assuming discovery role in sub-accounts"
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Effect   = "Allow"
-        Action   = "sts:AssumeRole"
-        Resource = "arn:aws:iam::*:role/InfobloxUDDI-DiscoveryRole"
-      }
-    ]
-  })
 }`,
-  setupGuide: `1. In each sub-account: Create IAM role "InfobloxUDDI-DiscoveryRole" with the trust policy.
-2. Attach the relevant discovery policies (VPC/IPAM, EC2, DNS, etc.) to each sub-account role.
-3. In the management account: Attach the "AWSOrganizationsReadOnlyAccess" managed policy.
-4. Create the STS AssumeRole policy and attach it to the management account IAM user or role.
-5. Enter the External ID from Infoblox Portal when configuring the trust policy.`
+  setupGuide: `1. In every AWS account to discover, create IAM role "InfobloxUDDI-DiscoveryRole" with the Infoblox trust policy.
+2. Require the External ID supplied by the Infoblox Portal.
+3. Attach the generated discovery policy to the role in each account.
+4. Configure each account role ARN in the Infoblox Portal.`
 };
 
 /**
@@ -572,7 +666,16 @@ export const AWS_FEATURES = {
  * @returns {string[]} Sorted, deduplicated IAM action strings
  */
 export function getAwsActions(selectedFeatureIds) {
-  const allActions = [];
+  const selectedCapabilities = selectedFeatureIds.filter(id => {
+    const feature = AWS_FEATURES[id];
+    return feature && Array.isArray(feature.actions);
+  });
+
+  if (selectedCapabilities.length === 0) {
+    return [];
+  }
+
+  const allActions = [...AWS_SHARED_READ_ONLY_ACTIONS];
   for (const id of selectedFeatureIds) {
     const feature = AWS_FEATURES[id];
     if (feature && Array.isArray(feature.actions)) {
@@ -585,10 +688,9 @@ export function getAwsActions(selectedFeatureIds) {
 /**
  * Generate a complete AWS IAM policy JSON document from selected features.
  *
- * Produces a policy with Version 2012-10-17, a single Allow statement
- * containing all deduplicated actions, and Resource "*".
- * If multiAccount is selected, its policy documents are appended as
- * additional context in a wrapper structure.
+ * Produces the documented shared least-privilege read-only statements.
+ * Selected management capabilities add their extra actions in a separate
+ * statement while preserving the canonical read-only baseline.
  *
  * @param {string[]} selectedFeatureIds - Array of feature ID keys from AWS_FEATURES
  * @returns {string} Pretty-printed JSON policy string
@@ -596,32 +698,23 @@ export function getAwsActions(selectedFeatureIds) {
 export function generateAwsPolicy(selectedFeatureIds) {
   const actions = getAwsActions(selectedFeatureIds);
 
-  // S3 bucket-level actions support resource-scoped ARNs (arn:aws:s3:::*)
-  // unlike ec2:Describe*, route53:List*, etc. which require Resource: "*"
-  const s3BucketActions = actions.filter(
-    a => a === 's3:GetBucketPolicy' || a === 's3:GetBucketPublicAccessBlock'
-  );
-  const otherActions = actions.filter(
-    a => a !== 's3:GetBucketPolicy' && a !== 's3:GetBucketPublicAccessBlock'
+  const statements = actions.length > 0
+    ? AWS_READ_ONLY_POLICY_STATEMENTS.map(statement => ({
+        ...statement,
+        Action: [...statement.Action]
+      }))
+    : [];
+
+  const additionalActions = actions.filter(
+    action => !AWS_SHARED_READ_ONLY_ACTIONS.includes(action)
   );
 
-  const statements = [];
-
-  if (otherActions.length > 0) {
+  if (additionalActions.length > 0) {
     statements.push({
-      Sid: 'InfobloxUDDIPermissions',
+      Sid: 'InfobloxUDDIAdditionalManagement',
       Effect: 'Allow',
-      Action: otherActions,
+      Action: additionalActions,
       Resource: '*'
-    });
-  }
-
-  if (s3BucketActions.length > 0) {
-    statements.push({
-      Sid: 'InfobloxUDDIS3BucketAccess',
-      Effect: 'Allow',
-      Action: s3BucketActions,
-      Resource: 'arn:aws:s3:::*'
     });
   }
 
@@ -675,60 +768,7 @@ aws iam attach-role-policy \\
   }
 
   if (hasMultiAccount) {
-    parts.push(`# Management account: role trusted by Infoblox to enumerate AWS Organizations
-cat > infoblox-uddi-management-trust-policy.json <<'EOF'
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Principal": {
-        "AWS": "arn:aws:iam::902917483333:root"
-      },
-      "Action": "sts:AssumeRole",
-      "Condition": {
-        "ForAnyValue:StringEquals": {
-          "sts:ExternalId": [
-            "<INFOBLOX_EXTERNAL_ID>"
-          ]
-        }
-      }
-    }
-  ]
-}
-EOF
-
-aws iam create-role \\
-  --role-name "InfobloxUDDI-ManagementRole" \\
-  --assume-role-policy-document file://infoblox-uddi-management-trust-policy.json
-
-aws iam attach-role-policy \\
-  --role-name "InfobloxUDDI-ManagementRole" \\
-  --policy-arn "arn:aws:iam::aws:policy/AWSOrganizationsReadOnlyAccess"
-
-cat > infoblox-uddi-sts-assume-role-policy.json <<'EOF'
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Action": "sts:AssumeRole",
-      "Resource": "arn:aws:iam::*:role/InfobloxUDDI-DiscoveryRole"
-    }
-  ]
-}
-EOF
-
-aws iam create-policy \\
-  --policy-name "InfobloxUDDI-STSAssumeRole" \\
-  --description "Infoblox Universal DDI - Allow assuming discovery role in sub-accounts" \\
-  --policy-document file://infoblox-uddi-sts-assume-role-policy.json
-
-aws iam attach-role-policy \\
-  --role-name "InfobloxUDDI-ManagementRole" \\
-  --policy-arn "arn:aws:iam::<MANAGEMENT_ACCOUNT_ID>:policy/InfobloxUDDI-STSAssumeRole"
-
-# Sub-account: role trusted by Infoblox for discovery in each member account
+    parts.push(`# Run in every AWS account that Infoblox should discover
 cat > infoblox-uddi-discovery-trust-policy.json <<'EOF'
 {
   "Version": "2012-10-17",
@@ -763,8 +803,8 @@ aws iam create-role \\
  * Generate combined Terraform HCL for selected AWS features.
  *
  * Produces a single aws_iam_policy resource with all deduplicated actions.
- * If multiAccount is selected, also generates aws_iam_role with trust policy
- * and aws_iam_role_policy_attachment for Organizations.
+ * If multiAccount is selected, also generates the directly trusted discovery
+ * role that must be deployed in each configured AWS account.
  *
  * @param {string[]} selectedFeatureIds - Array of feature ID keys from AWS_FEATURES
  * @returns {string} Terraform HCL string
@@ -775,39 +815,21 @@ export function generateAwsTerraform(selectedFeatureIds) {
   const hasMultiAccount = selectedFeatureIds.includes('multiAccount');
 
   if (actions.length > 0) {
-    // Split S3 bucket-level actions (support arn:aws:s3:::*) from others (require Resource = "*")
-    const s3BucketActions = actions.filter(
-      a => a === 's3:GetBucketPolicy' || a === 's3:GetBucketPublicAccessBlock'
-    );
-    const otherActions = actions.filter(
-      a => a !== 's3:GetBucketPolicy' && a !== 's3:GetBucketPublicAccessBlock'
-    );
+    const policy = JSON.parse(generateAwsPolicy(selectedFeatureIds));
+    const statementsHcl = policy.Statement.map(statement => {
+      const actionsHcl = statement.Action
+        .map(action => `          "${action}"`)
+        .join(',\n');
 
-    const statementsHcl = [];
-
-    if (otherActions.length > 0) {
-      const otherHcl = otherActions.map(a => `          "${a}"`).join(',\n');
-      statementsHcl.push(`      {
-        Sid    = "InfobloxUDDIPermissions"
-        Effect = "Allow"
+      return `      {
+        Sid    = "${statement.Sid}"
+        Effect = "${statement.Effect}"
         Action = [
-${otherHcl}
+${actionsHcl}
         ]
-        Resource = "*"
-      }`);
-    }
-
-    if (s3BucketActions.length > 0) {
-      const s3Hcl = s3BucketActions.map(a => `          "${a}"`).join(',\n');
-      statementsHcl.push(`      {
-        Sid    = "InfobloxUDDIS3BucketAccess"
-        Effect = "Allow"
-        Action = [
-${s3Hcl}
-        ]
-        Resource = "arn:aws:s3:::*"
-      }`);
-    }
+        Resource = "${statement.Resource}"
+      }`;
+    });
 
     parts.push(`resource "aws_iam_policy" "infoblox_uddi_discovery" {
   name        = "InfobloxUDDI-Discovery"
@@ -823,30 +845,7 @@ ${statementsHcl.join(',\n')}
   }
 
   if (hasMultiAccount) {
-    parts.push(`# Management account: Role assumed by Infoblox to enumerate the organization
-resource "aws_iam_role" "infoblox_uddi_management_role" {
-  name = "InfobloxUDDI-ManagementRole"
-
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Effect = "Allow"
-        Principal = {
-          AWS = "arn:aws:iam::902917483333:root"
-        }
-        Action = "sts:AssumeRole"
-        Condition = {
-          "ForAnyValue:StringEquals" = {
-            "sts:ExternalId" = [var.infoblox_external_id]
-          }
-        }
-      }
-    ]
-  })
-}
-
-# Sub-account: Discovery role with trust policy
+    parts.push(`# Repeat this role in every AWS account that Infoblox should discover.
 resource "aws_iam_role" "infoblox_uddi_discovery_role" {
   name = "InfobloxUDDI-DiscoveryRole"
 
@@ -867,34 +866,6 @@ resource "aws_iam_role" "infoblox_uddi_discovery_role" {
       }
     ]
   })
-}
-
-# Management account: Organizations read-only access
-resource "aws_iam_role_policy_attachment" "infoblox_uddi_org_readonly" {
-  role       = aws_iam_role.infoblox_uddi_management_role.name
-  policy_arn = "arn:aws:iam::aws:policy/AWSOrganizationsReadOnlyAccess"
-}
-
-# Management account: STS AssumeRole policy
-resource "aws_iam_policy" "infoblox_uddi_sts_assume_role" {
-  name        = "InfobloxUDDI-STSAssumeRole"
-  description = "Infoblox Universal DDI - Allow assuming discovery role in sub-accounts"
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Effect   = "Allow"
-        Action   = "sts:AssumeRole"
-        Resource = "arn:aws:iam::*:role/InfobloxUDDI-DiscoveryRole"
-      }
-    ]
-  })
-}
-
-resource "aws_iam_role_policy_attachment" "infoblox_uddi_sts_assume_role" {
-  role       = aws_iam_role.infoblox_uddi_management_role.name
-  policy_arn = aws_iam_policy.infoblox_uddi_sts_assume_role.arn
 }`);
   }
 
@@ -942,15 +913,13 @@ export function generateAwsGuide(selectedFeatureIds) {
   }
 
   if (hasMultiAccount) {
-    steps.push(`${stepNum}. In each sub-account: Create the IAM role "InfobloxUDDI-DiscoveryRole" with the trust policy allowing the Infoblox service account (arn:aws:iam::902917483333:root) to assume it.`);
+    steps.push(`${stepNum}. Repeat the "InfobloxUDDI-DiscoveryRole" in every AWS account that Infoblox should discover, with the trust policy allowing arn:aws:iam::902917483333:root to assume it.`);
     stepNum++;
-    steps.push(`${stepNum}. Attach the relevant discovery policies to each sub-account role.`);
+    steps.push(`${stepNum}. Require the External ID from the Infoblox Portal in each role trust policy.`);
     stepNum++;
-    steps.push(`${stepNum}. In the management account: Attach the "AWSOrganizationsReadOnlyAccess" managed policy to the IAM user or role used by Infoblox.`);
+    steps.push(`${stepNum}. Attach the generated "InfobloxUDDI-Discovery" policy to the role in each account.`);
     stepNum++;
-    steps.push(`${stepNum}. Create and attach the STS AssumeRole policy to allow the management account to assume roles in sub-accounts.`);
-    stepNum++;
-    steps.push(`${stepNum}. Enter the External ID from the Infoblox Portal when configuring the trust policy in each sub-account.`);
+    steps.push(`${stepNum}. Configure every account role ARN in the Infoblox Portal.`);
     stepNum++;
   }
 

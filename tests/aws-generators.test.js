@@ -6,14 +6,17 @@
 
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import {
   AWS_FEATURES,
+  AWS_READ_ONLY_POLICY_STATEMENTS,
   getAwsActions,
   generateAwsPolicy,
   generateAwsCli,
   generateAwsTerraform,
   generateAwsGuide
 } from '../js/data/aws.js';
+import { buildAnnotatedAwsPolicy } from '../js/output.js';
 
 // --- getAwsActions ---
 
@@ -28,29 +31,29 @@ describe('getAwsActions', () => {
     assert.deepStrictEqual(result, []);
   });
 
-  it('returns 21 sorted unique actions for vpcIpamDiscovery alone', () => {
+  it('returns the complete 68-action shared read-only baseline for an AWS discovery capability', () => {
     const result = getAwsActions(['vpcIpamDiscovery']);
-    assert.equal(result.length, 21);
+    assert.equal(result.length, 68);
     assert.equal(result.length, new Set(result).size, 'should have no duplicates');
     const sorted = [...result].sort();
     assert.deepStrictEqual(result, sorted, 'should be sorted alphabetically');
   });
 
-  it('returns 29 actions for vpcIpamDiscovery + ec2Networking (no overlap)', () => {
+  it('does not duplicate the shared baseline when multiple read-only capabilities are selected', () => {
     const result = getAwsActions(['vpcIpamDiscovery', 'ec2Networking']);
-    assert.equal(result.length, 29);
+    assert.equal(result.length, 68);
     assert.equal(result.length, new Set(result).size, 'should have no duplicates');
   });
 
-  it('returns 33 actions for vpcIpamDiscovery + dnsRoute53Bidirectional (1 overlap: ec2:DescribeVpcs)', () => {
+  it('adds only bidirectional DNS management actions to the shared baseline', () => {
     const result = getAwsActions(['vpcIpamDiscovery', 'dnsRoute53Bidirectional']);
-    assert.equal(result.length, 33);
+    assert.equal(result.length, 74);
     assert.equal(result.length, new Set(result).size, 'should have no duplicates');
   });
 
-  it('returns 25 actions for vpcIpamDiscovery + cloudForwardingDiscovery (2 overlaps)', () => {
+  it('does not duplicate the shared baseline for cloud forwarding discovery', () => {
     const result = getAwsActions(['vpcIpamDiscovery', 'cloudForwardingDiscovery']);
-    assert.equal(result.length, 25);
+    assert.equal(result.length, 68);
     assert.equal(result.length, new Set(result).size, 'should have no duplicates');
   });
 
@@ -72,15 +75,60 @@ describe('getAwsActions', () => {
 // --- generateAwsPolicy ---
 
 describe('generateAwsPolicy', () => {
+  it('matches the Infoblox least-privilege policy snapshot exactly', () => {
+    const expected = JSON.parse(
+      readFileSync(
+        new URL('./fixtures/aws-read-only-policy.json', import.meta.url),
+        'utf8'
+      )
+    );
+
+    assert.deepStrictEqual(
+      JSON.parse(generateAwsPolicy(['vpcIpamDiscovery'])),
+      expected
+    );
+  });
+
+  it('produces valid JSON for the policy shown and downloaded by the UI', () => {
+    const policyOutput = buildAnnotatedAwsPolicy(['vpcIpamDiscovery']);
+    const parsed = JSON.parse(policyOutput);
+
+    assert.equal(parsed.Statement.length, 10);
+  });
+
+  it('emits the documented 68-action read-only policy as 10 named statements', () => {
+    const parsed = JSON.parse(generateAwsPolicy(['vpcIpamDiscovery']));
+    const actions = parsed.Statement.flatMap(statement => statement.Action);
+
+    assert.equal(parsed.Statement.length, 10);
+    assert.equal(actions.length, 68);
+    assert.equal(new Set(actions).size, 68);
+    assert.deepStrictEqual(
+      parsed.Statement.map(statement => statement.Sid),
+      [
+        'S3BucketMetadataReadOnly',
+        'VPCSubnetRouteReadOnly',
+        'IPAMReadOnly',
+        'SecurityGroupReadOnly',
+        'StorageVolumeReadOnly',
+        'LoadBalancerReadOnly',
+        'DirectConnectReadOnly',
+        'CloudWatchReadOnly',
+        'Route53ReadOnly',
+        'Route53ResolverReadOnly'
+      ]
+    );
+    assert.ok(parsed.Statement.every(statement => statement.Resource === '*'));
+  });
+
   it('returns valid JSON with correct IAM structure for vpcIpamDiscovery', () => {
     const json = generateAwsPolicy(['vpcIpamDiscovery']);
     const parsed = JSON.parse(json);
     assert.equal(parsed.Version, '2012-10-17');
     assert.ok(Array.isArray(parsed.Statement), 'Statement should be an array');
-    assert.equal(parsed.Statement.length, 1, 'non-S3 features produce single statement');
-    assert.equal(parsed.Statement[0].Effect, 'Allow');
-    assert.equal(parsed.Statement[0].Action.length, 21);
-    assert.equal(parsed.Statement[0].Resource, '*');
+    assert.equal(parsed.Statement.length, 10);
+    assert.ok(parsed.Statement.every(statement => statement.Effect === 'Allow'));
+    assert.ok(parsed.Statement.every(statement => statement.Resource === '*'));
   });
 
   it('includes Sid field in statement', () => {
@@ -92,8 +140,10 @@ describe('generateAwsPolicy', () => {
   it('deduplicates actions in policy output', () => {
     const json = generateAwsPolicy(['vpcIpamDiscovery', 'dnsRoute53Bidirectional']);
     const parsed = JSON.parse(json);
-    assert.equal(parsed.Statement.length, 1, 'no S3 features means single statement');
-    assert.equal(parsed.Statement[0].Action.length, 33);
+    const actions = parsed.Statement.flatMap(statement => statement.Action);
+    assert.equal(parsed.Statement.length, 11);
+    assert.equal(actions.length, 74);
+    assert.equal(new Set(actions).size, 74);
   });
 
   it('returns empty statement actions for empty input', () => {
@@ -102,41 +152,30 @@ describe('generateAwsPolicy', () => {
     assert.equal(parsed.Statement[0].Action.length, 0);
   });
 
-  it('produces single statement for non-S3 features', () => {
+  it('preserves named audit blocks for non-S3 feature selections', () => {
     const json = generateAwsPolicy(['vpcIpamDiscovery']);
     const parsed = JSON.parse(json);
-    assert.equal(parsed.Statement.length, 1);
-    assert.equal(parsed.Statement[0].Resource, '*');
-    assert.equal(parsed.Statement[0].Sid, 'InfobloxUDDIPermissions');
+    assert.equal(parsed.Statement.length, 10);
+    assert.equal(parsed.Statement[0].Sid, 'S3BucketMetadataReadOnly');
   });
 
-  it('splits S3 Get actions into separate statement with bucket ARN', () => {
+  it('uses the documented wildcard resource for S3 metadata reads', () => {
     const json = generateAwsPolicy(['s3BucketVisibility']);
     const parsed = JSON.parse(json);
-    assert.equal(parsed.Statement.length, 2, 'S3 feature produces two statements');
+    const s3Statement = parsed.Statement.find(
+      statement => statement.Sid === 'S3BucketMetadataReadOnly'
+    );
 
-    // First statement: s3:ListAllMyBuckets with Resource "*"
-    assert.ok(parsed.Statement[0].Action.includes('s3:ListAllMyBuckets'),
-      'first statement should include s3:ListAllMyBuckets');
-    assert.ok(!parsed.Statement[0].Action.includes('s3:GetBucketPolicy'),
-      'first statement should not include s3:GetBucketPolicy');
-    assert.equal(parsed.Statement[0].Resource, '*');
-
-    // Second statement: S3 Get actions with bucket-level ARN
-    assert.ok(parsed.Statement[1].Action.includes('s3:GetBucketPolicy'),
-      'second statement should include s3:GetBucketPolicy');
-    assert.ok(parsed.Statement[1].Action.includes('s3:GetBucketPublicAccessBlock'),
-      'second statement should include s3:GetBucketPublicAccessBlock');
-    assert.equal(parsed.Statement[1].Resource, 'arn:aws:s3:::*');
-    assert.equal(parsed.Statement[1].Sid, 'InfobloxUDDIS3BucketAccess');
+    assert.equal(parsed.Statement.length, 10);
+    assert.equal(s3Statement.Action.length, 7);
+    assert.equal(s3Statement.Resource, '*');
   });
 
-  it('mixed features with S3 produce two statements', () => {
+  it('mixed read-only features still produce one shared documented policy', () => {
     const json = generateAwsPolicy(['vpcIpamDiscovery', 's3BucketVisibility']);
     const parsed = JSON.parse(json);
-    assert.equal(parsed.Statement.length, 2, 'mixed features with S3 produce two statements');
-    assert.equal(parsed.Statement[0].Resource, '*');
-    assert.equal(parsed.Statement[1].Resource, 'arn:aws:s3:::*');
+    assert.equal(parsed.Statement.length, 10);
+    assert.equal(parsed.Statement.flatMap(statement => statement.Action).length, 68);
   });
 });
 
@@ -150,27 +189,44 @@ describe('generateAwsCli', () => {
     assert.ok(cli.includes('infoblox-uddi-policy.json'));
   });
 
-  it('contains create-role and organizations attachment for multiAccount', () => {
+  it('creates only the direct Infoblox-trusted member-account role for multi-account discovery', () => {
     const cli = generateAwsCli(['multiAccount']);
     assert.ok(cli.includes('aws iam create-role'));
-    assert.ok(cli.includes('AWSOrganizationsReadOnlyAccess'));
-    assert.ok(cli.includes('InfobloxUDDI-ManagementRole'));
     assert.ok(cli.includes('InfobloxUDDI-DiscoveryRole'));
+    assert.ok(cli.includes('902917483333'));
+    assert.ok(cli.includes('sts:ExternalId'));
+    assert.ok(!cli.includes('AWSOrganizationsReadOnlyAccess'));
+    assert.ok(!cli.includes('InfobloxUDDI-ManagementRole'));
+    assert.ok(!cli.includes('InfobloxUDDI-STSAssumeRole'));
   });
 });
 
 describe('generateAwsTerraform', () => {
+  it('contains the complete documented read-only policy with matching statement IDs', () => {
+    const tf = generateAwsTerraform(['vpcIpamDiscovery']);
+
+    for (const statement of AWS_READ_ONLY_POLICY_STATEMENTS) {
+      assert.ok(tf.includes(statement.Sid), `missing Terraform statement ${statement.Sid}`);
+      for (const action of statement.Action) {
+        assert.ok(tf.includes(`"${action}"`), `missing Terraform action ${action}`);
+      }
+    }
+    assert.ok(!tf.includes('arn:aws:s3:::*'));
+  });
+
   it('contains aws_iam_policy resource for standard features', () => {
     const tf = generateAwsTerraform(['vpcIpamDiscovery']);
     assert.ok(tf.includes('resource "aws_iam_policy"'), 'should contain aws_iam_policy resource');
   });
 
-  it('contains aws_iam_role for multiAccount', () => {
+  it('creates only the directly Infoblox-trusted role for multiAccount', () => {
     const tf = generateAwsTerraform(['multiAccount']);
-    assert.ok(tf.includes('aws_iam_role'), 'should contain aws_iam_role');
-    assert.ok(tf.includes('assume_role_policy'), 'should contain assume_role_policy');
-    assert.ok(tf.includes('infoblox_uddi_management_role'), 'should contain management role');
-    assert.ok(tf.includes('aws_iam_role_policy_attachment'), 'should attach management policies');
+    assert.ok(tf.includes('resource "aws_iam_role" "infoblox_uddi_discovery_role"'));
+    assert.ok(tf.includes('arn:aws:iam::902917483333:root'));
+    assert.ok(tf.includes('"sts:ExternalId"'));
+    assert.ok(!tf.includes('infoblox_uddi_management_role'));
+    assert.ok(!tf.includes('AWSOrganizationsReadOnlyAccess'));
+    assert.ok(!tf.includes('infoblox_uddi_sts_assume_role'));
   });
 
   it('contains combined policy for multiple features', () => {
@@ -185,11 +241,11 @@ describe('generateAwsTerraform', () => {
     assert.ok(tf.includes('policy_arn = aws_iam_policy.infoblox_uddi_discovery.arn'), 'should attach discovery policy to sub-account role');
   });
 
-  it('produces split Resource blocks when S3 features included', () => {
+  it('uses wildcard resources for the documented S3 metadata statement', () => {
     const tf = generateAwsTerraform(['s3BucketVisibility']);
-    assert.ok(tf.includes('arn:aws:s3:::*'), 'should contain S3 bucket ARN');
-    assert.ok(tf.includes('InfobloxUDDIS3BucketAccess'), 'should contain S3 bucket Sid');
-    assert.ok(tf.includes('Resource = "*"'), 'should still have wildcard Resource for non-S3 actions');
+    assert.ok(tf.includes('S3BucketMetadataReadOnly'));
+    assert.ok(tf.includes('Resource = "*"'));
+    assert.ok(!tf.includes('arn:aws:s3:::*'));
   });
 });
 
@@ -205,10 +261,13 @@ describe('generateAwsGuide', () => {
 
   it('includes multi-account steps when multiAccount selected', () => {
     const guide = generateAwsGuide(['multiAccount']);
-    assert.ok(
-      guide.toLowerCase().includes('sub-account') || guide.toLowerCase().includes('management account'),
-      'should mention sub-account or management account'
-    );
+    assert.ok(guide.includes('every AWS account'));
+    assert.ok(guide.includes('arn:aws:iam::902917483333:root'));
+    assert.ok(guide.includes('External ID'));
+    assert.ok(guide.includes('every account role ARN'));
+    assert.ok(!guide.includes('management account'));
+    assert.ok(!guide.includes('AWSOrganizationsReadOnlyAccess'));
+    assert.ok(!guide.includes('STS AssumeRole policy'));
   });
 
   it('combines standard and multi-account guidance', () => {
