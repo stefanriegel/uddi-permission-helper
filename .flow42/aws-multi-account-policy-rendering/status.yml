@@ -2,10 +2,13 @@ schema_version: 1
 work_id: "aws-multi-account-policy-rendering"
 title: "Render AWS Multi-Account trust policy"
 work_type: "bug"
-stage: "pr-ready"
+stage: "ci-running"
 risk: "medium"
-state_revision: 9
+state_revision: 10
 created_at: "2026-08-27T21:10:13.190621+00:00"
-updated_at: "2026-08-27T21:26:55Z"
+updated_at: "2026-08-27T22:21:41Z"
 review_loops: 0
 blockers: []
+change_request: "https://github.com/stefanriegel/uddi-permission-helper/pull/2"
+ci_state: "green"
+next_actions: [awaiting-current-review]

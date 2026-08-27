@@ -6,3 +6,4 @@
 {"actor":"codex-worker","from":"building","revision":7,"timestamp":"2026-08-27T21:22:45Z","to":"verification"}
 {"actor":"codex-worker","from":"verification","revision":8,"timestamp":"2026-08-27T21:22:45Z","to":"pr-gate"}
 {"actor":"codex-worker","from":"pr-gate","reason":"state normalization for old vocabulary migration from legacy pr-gate to canonical pr-ready","revision":9,"timestamp":"2026-08-27T21:26:55Z","to":"pr-ready"}
+{"actor":"codex-worker","ci_state":"green","from":"pr-ready","head_sha":"3ffcfe5ed87ef8e9edc7b0f97697901258e0c6e3","next_action":"awaiting-current-review","provenance_ref":"https://github.com/stefanriegel/uddi-permission-helper/pull/2","reason":"exact-current-head-ci-green-and-empty-reviews-verified","revision":10,"timestamp":"2026-08-27T22:21:41Z","to":"ci-running"}

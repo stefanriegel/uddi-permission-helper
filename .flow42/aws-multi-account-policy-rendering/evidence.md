@@ -110,3 +110,25 @@ and evidence pointer. For behavior changes record the observed red and green.
   16 suites. `node --check` passed for all JavaScript and test files,
   `git diff --check` passed, and a direct module probe re-confirmed legacy
   permissions-only byte equality plus the mixed collection contract.
+
+## Independent current-PR review evidence
+
+- Timestamp: 2026-08-27T22:21:41Z.
+- Authenticated `gh auth status` identified active account `stefanriegel` with
+  repository access. Authenticated PR and API read-back confirmed open PR
+  https://github.com/stefanriegel/uddi-permission-helper/pull/2 at exact head
+  `3ffcfe5ed87ef8e9edc7b0f97697901258e0c6e3`, equal to local `git rev-parse
+  HEAD` on `fix/aws-multi-account-policy-rendering`.
+- Authenticated check-run read-back for that exact SHA returned one check,
+  `Node tests and syntax`, with `status: completed`, `conclusion: success`, and
+  completion time `2026-08-27T21:51:43Z`.
+- Independent local re-run: `node --test tests/*.test.js` passed 111/111 across
+  16 suites; `find js tests -type f -name '*.js' -exec node --check '{}'
+  ';'` exited 0.
+- Authenticated `gh api repos/stefanriegel/uddi-permission-helper/pulls/2/reviews`
+  returned the exact empty array `[]`; `gh pr view --json reviews,reviewDecision`
+  independently returned `reviews: []` and an empty review decision.
+- State advanced canonically from `pr-ready` to `ci-running`; `ci_state` is
+  `green`, and the next action is `awaiting-current-review`. No product or
+  workflow edit, commit, push, PR/Forge write, merge, deployment, or delegation
+  was performed.
