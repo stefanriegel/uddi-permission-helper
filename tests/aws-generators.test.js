@@ -16,7 +16,7 @@ import {
   generateAwsTerraform,
   generateAwsGuide
 } from '../js/data/aws.js';
-import { buildAnnotatedAwsPolicy } from '../js/output.js';
+import { buildAnnotatedAwsPolicy, getActiveTabArtifact, renderOutput } from '../js/output.js';
 
 // --- getAwsActions ---
 
@@ -94,6 +94,112 @@ describe('generateAwsPolicy', () => {
     const parsed = JSON.parse(policyOutput);
 
     assert.equal(parsed.Statement.length, 10);
+  });
+
+  it('renders the configured trust policy for a Multi-Account-only selection', () => {
+    const policyOutput = buildAnnotatedAwsPolicy(['multiAccount']);
+    const parsed = JSON.parse(policyOutput);
+
+    assert.equal(parsed.Version, '2012-10-17');
+    assert.equal(parsed.Statement[0].Principal.AWS, 'arn:aws:iam::902917483333:root');
+    assert.equal(parsed.Statement[0].Action, 'sts:AssumeRole');
+    assert.deepStrictEqual(
+      parsed.Statement[0].Condition['ForAnyValue:StringEquals']['sts:ExternalId'],
+      ['<YOUR_EXTERNAL_ID>']
+    );
+  });
+
+  it('preserves the legacy permissions-only output byte for byte', () => {
+    const selectedIds = ['vpcIpamDiscovery'];
+    assert.equal(buildAnnotatedAwsPolicy(selectedIds), generateAwsPolicy(selectedIds));
+  });
+
+  it('represents mixed permissions and trust policies as separate typed documents', () => {
+    const selectedIds = ['vpcIpamDiscovery', 'multiAccount'];
+    const parsed = JSON.parse(buildAnnotatedAwsPolicy(selectedIds));
+
+    assert.equal(parsed.kind, 'aws-iam-policy-document-collection');
+    assert.equal(
+      parsed.deployment,
+      'Deploy each documents[].document separately; this collection is not an IAM policy.'
+    );
+
+    assert.deepStrictEqual(
+      parsed.documents.map(({ name, type }) => ({ name, type })),
+      [
+        { name: 'Permissions Policy', type: 'permissions' },
+        { name: 'Trust Policy', type: 'trust' }
+      ]
+    );
+    assert.deepStrictEqual(parsed.documents[0].document, JSON.parse(generateAwsPolicy(selectedIds)));
+    assert.deepStrictEqual(parsed.documents[1], {
+      name: AWS_FEATURES.multiAccount.policies[0].name,
+      type: AWS_FEATURES.multiAccount.policies[0].type,
+      document: AWS_FEATURES.multiAccount.policies[0].document
+    });
+  });
+
+  it('uses the rendered mixed collection as the single copy and download source', () => {
+    const expected = buildAnnotatedAwsPolicy(['vpcIpamDiscovery', 'multiAccount']);
+    const panels = Object.fromEntries(
+      ['panel-policy', 'panel-cli', 'panel-terraform', 'panel-guide'].map(id => [id, {
+        hidden: id !== 'panel-policy',
+        _html: '',
+        textContent: '',
+        set innerHTML(value) {
+          this._html = value;
+          this.textContent = value
+            .replace(/<[^>]+>/g, '')
+            .replace(/&lt;/g, '<')
+            .replace(/&gt;/g, '>')
+            .replace(/&quot;/g, '"')
+            .replace(/&amp;/g, '&');
+        },
+        get innerHTML() { return this._html; },
+        querySelector() { return null; }
+      }])
+    );
+    const previousDocument = globalThis.document;
+    const previousWindow = globalThis.window;
+    globalThis.document = {
+      getElementById: id => panels[id] ?? null,
+      querySelector: selector => {
+        if (selector === '.output__panel:not([hidden])') return panels['panel-policy'];
+        if (selector === '.output__tab--active') {
+          return { getAttribute: name => name === 'aria-controls' ? 'panel-policy' : null };
+        }
+        return null;
+      },
+      querySelectorAll: () => []
+    };
+    globalThis.window = {};
+
+    try {
+      renderOutput('aws', { vpcIpamDiscovery: true, multiAccount: true });
+      assert.deepStrictEqual(getActiveTabArtifact('aws'), {
+        content: expected,
+        filename: 'aws-policy.json'
+      });
+      assert.match(panels['panel-policy'].innerHTML, /aws-iam-policy-document-collection/);
+      assert.match(panels['panel-policy'].innerHTML, /Deploy each documents\[\]\.document separately/);
+    } finally {
+      globalThis.document = previousDocument;
+      globalThis.window = previousWindow;
+    }
+  });
+
+  it('returns empty output when no selected feature supplies a policy document', () => {
+    assert.equal(buildAnnotatedAwsPolicy([]), '');
+    assert.equal(buildAnnotatedAwsPolicy(['unknownFeature']), '');
+  });
+
+  it('is deterministic and does not mutate catalog trust policies', () => {
+    const before = structuredClone(AWS_FEATURES.multiAccount.policies);
+    const first = buildAnnotatedAwsPolicy(['vpcIpamDiscovery', 'multiAccount']);
+    const second = buildAnnotatedAwsPolicy(['vpcIpamDiscovery', 'multiAccount']);
+
+    assert.equal(second, first);
+    assert.deepStrictEqual(AWS_FEATURES.multiAccount.policies, before);
   });
 
   it('emits the documented 68-action read-only policy as 10 named statements', () => {

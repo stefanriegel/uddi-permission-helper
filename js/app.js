@@ -5,7 +5,7 @@
 import { setActiveProvider, getActiveProvider, hasProviderData, setFeature, getFeatures, setSelectionMode, getSelectionMode, getSelectedProducts, toggleProduct, hasProductSelected } from './state.js';
 import { updateProviderCards, updateWorkspace, renderWizard, renderAdvanced, updateProductCards, setProviderSelectorVisible } from './ui.js';
 import { getQuestionsForProvider } from './questions.js';
-import { renderOutput, updateBadge, getActiveTabContent, getActiveTabId, getDownloadFilename, setButtonsDisabled } from './output.js';
+import { renderOutput, updateBadge, getActiveTabArtifact, setButtonsDisabled } from './output.js';
 
 /**
  * Refresh the output panel content and badge for the current provider state.
@@ -159,15 +159,15 @@ document.addEventListener('DOMContentLoaded', () => {
   const copyBtn = document.querySelector('[data-action="copy"]');
   if (copyBtn) {
     copyBtn.addEventListener('click', async () => {
-      const content = getActiveTabContent();
-      if (!content) return;
+      const artifact = getActiveTabArtifact(getActiveProvider());
+      if (!artifact) return;
 
       try {
-        await navigator.clipboard.writeText(content);
+        await navigator.clipboard.writeText(artifact.content);
       } catch {
         // Fallback for HTTP localhost
         const textarea = document.createElement('textarea');
-        textarea.value = content;
+        textarea.value = artifact.content;
         textarea.style.position = 'fixed';
         textarea.style.opacity = '0';
         document.body.appendChild(textarea);
@@ -191,18 +191,15 @@ document.addEventListener('DOMContentLoaded', () => {
   const downloadBtn = document.querySelector('[data-action="download"]');
   if (downloadBtn) {
     downloadBtn.addEventListener('click', () => {
-      const content = getActiveTabContent();
-      if (!content) return;
-
       const providerId = getActiveProvider();
-      const tabId = getActiveTabId();
-      const filename = getDownloadFilename(providerId, tabId);
+      const artifact = getActiveTabArtifact(providerId);
+      if (!artifact) return;
 
-      const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+      const blob = new Blob([artifact.content], { type: 'text/plain;charset=utf-8' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = filename;
+      a.download = artifact.filename;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
