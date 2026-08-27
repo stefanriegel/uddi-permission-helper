@@ -1,0 +1,7 @@
+schema_version: 1
+config_hash: "c8bba3a2342085f24482ed27c0bc2c679e551d014d73cd979667b15a319dc5e8"
+config_approved_by: "stefanriegel"
+config_approved_at: "2026-08-27T21:15:18Z"
+config_provenance_kind: "github-comment"
+config_provenance_ref: "https://github.com/stefanriegel/uddi-permission-helper/issues/1#issuecomment-5445311860"
+config_provenance_verified_at: "2026-08-27T21:15:30Z"

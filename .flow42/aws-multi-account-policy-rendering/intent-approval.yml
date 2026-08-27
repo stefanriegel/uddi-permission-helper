@@ -1,0 +1,9 @@
+schema_version: 1
+artifact: ".flow42/aws-multi-account-policy-rendering/intent.md"
+artifact_hash: "53e2c3ecc35e0aa8d21cc2e026983eb568414ccf09e87a9be941108e439c704b"
+approved_by: "stefanriegel"
+approved_at: "2026-08-27T21:12:45Z"
+provenance_kind: "github-comment"
+provenance_ref: "https://github.com/stefanriegel/uddi-permission-helper/issues/1#issuecomment-5445284977"
+provenance_verified_at: "2026-08-27T21:17:37Z"
+scope: "specification"

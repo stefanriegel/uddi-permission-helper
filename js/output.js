@@ -6,7 +6,7 @@
  * the permission count badge.
  */
 
-import { getAwsActions, generateAwsPolicy, generateAwsCli, generateAwsTerraform, generateAwsGuide } from './data/aws.js';
+import { AWS_FEATURES, getAwsActions, generateAwsPolicy, generateAwsCli, generateAwsTerraform, generateAwsGuide } from './data/aws.js';
 import { AZURE_FEATURES, getAzureRoles, getAzureCustomRoles, generateAzurePolicy, generateAzureTerraform, generateAzureGuide } from './data/azure.js';
 import { GCP_FEATURES, getGcpRoles, getGcpCustomPermissions, generateGcpPolicy, generateGcpTerraform, generateGcpGuide } from './data/gcp.js';
 
@@ -29,15 +29,40 @@ function escapeHtml(str) {
 }
 
 /**
- * Build the deployable AWS IAM policy shown and downloaded by the UI.
+ * Build the AWS IAM policy document output shown and downloaded by the UI.
  *
  * @param {string[]} selectedIds - Selected feature IDs
  * @returns {string} Valid JSON policy
  */
 export function buildAnnotatedAwsPolicy(selectedIds) {
-  return getAwsActions(selectedIds).length > 0
-    ? generateAwsPolicy(selectedIds)
-    : '';
+  const hasPermissions = getAwsActions(selectedIds).length > 0;
+  const trustPolicies = selectedIds.flatMap(id => {
+    const policies = AWS_FEATURES[id]?.policies;
+    return Array.isArray(policies)
+      ? policies.map(({ name, type, document }) => ({ name, type, document }))
+      : [];
+  });
+
+  if (!hasPermissions && trustPolicies.length === 0) return '';
+  if (!hasPermissions && trustPolicies.length === 1) {
+    return JSON.stringify(trustPolicies[0].document, null, 2);
+  }
+  if (hasPermissions && trustPolicies.length === 0) {
+    return generateAwsPolicy(selectedIds);
+  }
+
+  return JSON.stringify({
+    kind: 'aws-iam-policy-document-collection',
+    deployment: 'Deploy each documents[].document separately; this collection is not an IAM policy.',
+    documents: [
+      {
+        name: 'Permissions Policy',
+        type: 'permissions',
+        document: JSON.parse(generateAwsPolicy(selectedIds))
+      },
+      ...trustPolicies
+    ]
+  }, null, 2);
 }
 
 /**
@@ -441,6 +466,21 @@ export function getActiveTabContent() {
 
   const text = panel.textContent;
   return text && text.trim() ? text.trim() : null;
+}
+
+/**
+ * Get the content and filename consumed by copy and download.
+ * @param {string} providerId - Active provider ('aws', 'azure', 'gcp')
+ * @returns {{content: string, filename: string}|null}
+ */
+export function getActiveTabArtifact(providerId) {
+  const content = getActiveTabContent();
+  if (!content) return null;
+
+  return {
+    content,
+    filename: getDownloadFilename(providerId, getActiveTabId())
+  };
 }
 
 /**
